@@ -35,7 +35,7 @@ FROM [edw].[FactAllAssessedAmounts] AS [FA]
                                                               AND [AG].[Roll Category Code] = '1'
 
     WHERE [FAV].[Roll Year] = @p_RY
-          AND [FAV].[Cycle Number] <= @p_CN
+          AND [FAV].[Cycle Number] = @p_CN
           AND [FAV].[Assessment Code] = '02'
           AND [AG].[Jurisdiction Code] BETWEEN '200' AND '800'
     GROUP BY [FAV].dimFolio_SK, 

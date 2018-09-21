@@ -11,8 +11,17 @@ SELECT dimRegionalDistrict_SK,
        [Regional District], 
        [Regional District Code], 
        [Regional District Desc], 
-       RowSortOrder
+       IIF([Regional District Code] = 'XX', 999,RowSortOrder) AS [RowSortOrder]
 FROM edw.dimRegionalDistrict
 WHERE([Roll Year] = @p_RY)
      AND (NOT([Regional District Code] IN('00', '88', '99')))
+UNION 
+SELECT NULL AS dimRegionalDistrict_SK, 
+       NULL AS dimRegionalDistrict_BK, 
+       NULL AS dimRollYear_SK, 
+       NULL AS [Roll Year], 
+       'Provincial Totals' AS [Regional District], 
+       'PROV' AS [Regional District Code], 
+       'Provincial Totals' AS [Regional District Desc], 
+       998 AS RowSortOrder
 ORDER BY RowSortOrder;
