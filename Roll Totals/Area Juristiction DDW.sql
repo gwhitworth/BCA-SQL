@@ -7,19 +7,16 @@ SET @p_CN = -1;
 SET @p_AR = '01';
 SET @p_JR = '213';
 SET @p_JR = NULL;
-SELECT [AR].[Area Code], 
-       [Jurisdiction Code], 
-       [Jurisdiction], 
-       [Jurisdiction Desc]
-FROM edw.dimJurisdiction AS [JR]
-     INNER JOIN [edw].[dimArea] AS [AR] ON [JR].dimArea_SK = [AR].dimArea_SK
-WHERE([JR].dimRollYear_SK = @p_RY)
-     AND [Jurisdiction Code] > '199'
-     AND [AR].[Area Code] = @p_AR
+SELECT NULL AS [Jurisdiction Code], 
+       '000' AS [Neighbourhood Code], 
+       'N/A' AS Neighbourhood, 
+       'N/A' AS [Neighbourhood Desc]
 UNION
-SELECT @p_AR, 
-       '000', 
-       'N/A', 
-       'N/A'
-ORDER BY [AR].[Area Code], 
-         [Jurisdiction Code];
+SELECT [Jurisdiction Code], 
+       [NEIGH].[Neighbourhood Code], 
+       [NEIGH].Neighbourhood, 
+       [NEIGH].[Neighbourhood Desc]
+FROM [edw].[dimAssessmentGeography] AS [GEO]
+     INNER JOIN [edw].[dimNeighbourhood] AS [NEIGH] ON [GEO].[dimNeighbourhood_SK] = [NEIGH].[dimNeighbourhood_SK]
+WHERE([GEO].[Roll Year] = @p_RY)
+ORDER BY [Neighbourhood Code]
