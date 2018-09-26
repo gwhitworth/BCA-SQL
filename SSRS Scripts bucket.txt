@@ -1,0 +1,44 @@
+="(" 
++ IIf(
+Format(
+
+Lookup("Section 644 LGA/Section 398 Vancouver Charter", Fields!Property_Class.Value
+, Fields!Net_Gen_Improvements.Value
+, "qryData"),"0")
+="",0,Fields!Net_Gen_Improvements.Value) 
++ ") Included in Utilities above"
+
+="(" 
++ Format(
+Lookup("Section 644 LGA/Section 398 Vancouver Charter"
+, Fields!Property_Class.Value
+, Fields!Net_Gen_Improvements.Value, "qryData")
+, "#,0") 
++ ") Included in Utilities above"
+
+
+
+
+
+="(" 
++ Format(
+Lookup("Section 644 LGA/Section 398 Vancouver Charter"
+, Fields!Property_Class.Value
+, Fields!Net_Gen_Improvements.Value, "qryData")
+, "#,0") 
++ ") Included in Utilities above"
+
+*********************
+
+=IIf(Parameters!p_JR.Count = 1 
+AND Parameters!p_JR.Value(0) = "NA"
+AND Parameters!p_N.Count = 1 
+AND Parameters!p_N.Value(0) = "NA"
+,false
+,true)
+
+=IIf(Parameters!p_JR.Count >= 1 
+AND Parameters!p_N.Count = 1 
+AND Parameters!p_N.Value(0) = "NA"
+,false
+,true)
