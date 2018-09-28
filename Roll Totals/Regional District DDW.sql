@@ -25,9 +25,19 @@ SELECT NULL,
        NULL, 
        NULL, 
        @p_RY, 
+       'Regional District Provincial Totals' AS [Regional District], 
+       'RDPROV' AS [Regional District Code], 
+       'Regional District Provincial Totals' AS [Regional District Desc], 
+       -2 AS RowSortOrder
+UNION
+SELECT NULL, 
+       NULL, 
+       NULL, 
+       @p_RY, 
        'Not Applicable' AS [Regional District], 
        'NA' AS [Regional District Code], 
        'Not Applicable' AS [Regional District Desc], 
-       -2 AS RowSortOrder
+       -3 AS RowSortOrder
 ORDER BY RowSortOrder, 
          [Regional District Code];
+
