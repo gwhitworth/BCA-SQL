@@ -36,14 +36,14 @@ FROM [edw].[FactAllAssessedAmounts] AS [FA]
          INNER JOIN [edw].[dimAssessmentGeography] AS [AG] ON [FA].[dimAssessmentGeography_SK] = [AG].[dimAssessmentGeography_SK]
                                                               AND [AG].[Roll Category Code] = '1'
     WHERE [FA].[Roll Year] = @p_RY
-          AND [FA].[Cycle Number] <= @p_CN
+          AND [FA].[Cycle Number] = @p_CN
           AND [FA].[Assessment Code] = '02'
     GROUP BY [FA].dimFolio_SK, 
              [FA].[Property Class Code]
     HAVING COUNT(*) > 1
 ) AS [OCCUR] ON [OCCUR].dimFolio_SK = [FA].dimFolio_SK
 WHERE [FA].[Roll Year] = @p_RY
-      AND [FA].[Cycle Number] <= @p_CN
+      AND [FA].[Cycle Number] = @p_CN
 GROUP BY [AG].[Jurisdiction Code], 
          [PC].[Property Class Code], 
          [FA].[Roll Year], 
