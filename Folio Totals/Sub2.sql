@@ -3,6 +3,7 @@ DECLARE @p_NH CHAR(6);
 SET @p_RY = 2017;
 SET @p_NH = '234022';
 SELECT DISTINCT 
+top 200
        [FACT].[Roll Year], 
        [AG].[Area Code], 
        [AG].[Area] AS [Area Name], 
@@ -35,9 +36,10 @@ SELECT DISTINCT
        '??Owner??' AS [Party Type], 
        [ONA].[Company Name] AS [Owner CompName], 
        [ONA].[First Name] AS [Owner FName], 
+	   [ONA].[Middle Name] AS [Owner MName], 
        [ONA].[Last Name] AS [Owner LName], 
-       [BR_FA].[Care Of], 
-       [OAD].[Attention], 
+       IIF([BR_FA].[Care Of] IS NOT NULL, 'C/O '+[BR_FA].[Care Of], NULL) AS [Care Of], 
+       IIF([OAD].[Attention] IS NOT NULL, 'ATTN '+[OAD].[Attention], NULL) AS [Attention], 
        [OAD].[dimAddress_SK], 
        [OAD].[Address Type Code], 
        ISNULL([OAD].[Address Unit], '') AS [Address Unit], 
@@ -46,7 +48,8 @@ SELECT DISTINCT
        [OAD].[City Desc], 
        [OAD].[Province Desc], 
        [OAD].[Postal/Zip Code], 
-	   [OAD].[Country],
+       [CN].[Country Desc] AS [Country], 
+	   [OAD].[Country Code],
        [OAD].[Address Line 1] AS [Owner Address 1], 
        [OAD].[Address Line 2] AS [Owner Address 2], 
        [OAD].[Address Line 3] AS [Owner Address 3], 
@@ -65,11 +68,14 @@ FROM [edw].[FactRollSummary] AS [FACT]
      INNER JOIN [edw].[bridgeOwnerFolioAddress] AS [BR_FA] ON [BR_FA].[dimFolio_SK] = [FO].[dimFolio_SK]
      INNER JOIN [edw].[dimName] AS [ONA] ON [ONA].[dimName_SK] = [BR_FA].[dimName_SK]
      INNER JOIN [edw].[dimAddress] AS [OAD] ON [OAD].[dimAddress_SK] = [BR_FA].[dimAddress_SK]
+	 INNER JOIN [edw].[dimCountry] AS [CN] ON [CN].[dimCountry_SK] =[OAD].[dimCountry_SK]  
      LEFT OUTER JOIN [edw].[dimFolioCharacteristicTbl] AS [FC] ON [FC].[dimFolioCharacteristic_BK] = [FO].[Characteristic1_dimFolioCharacteristic_BK]
 WHERE [FACT].[Roll Year] = @p_RY
       AND [AG].[Neighbourhood Code] IN(@p_NH)
-	  AND [ONA].[Company Name] like '%CROWN FEDERAL%'
-     --AND [Roll Number] = '02101006'
+--AND [ONA].[Company Name] like '%CROWN FEDERAL%'
+--AND [Roll Number] = '02101041'
+--AND [CN].[Country Desc] = 'HONG KONG'
+AND [BR_FA].[Care Of] like '%PILT%'
 ORDER BY [FACT].[Roll Year], 
          [AG].[Area Code], 
          [AG].[Area], 
