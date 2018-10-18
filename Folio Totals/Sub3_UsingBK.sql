@@ -65,7 +65,13 @@ SELECT TOP 500 [FACT].[Roll Year],
 			   0 AS [COUNT-FORFEITURE]
 
 FROM [edw].[FactRollSummary] AS [FACT]
---INNER JOIN [edw].[dimPropertyClass] AS [PC] ON [FACT].[dimPropertyClass_SK] = [PC].[dimPropertyClass_SK]
+INNER JOIN [edw].[FactTotalAllAmounts] AS [FACT2] ON [FACT2].dimFolio_SK = [FACT].dimFolio_SK
+--FROM [edw].[FactTotalAllAmounts] AS [FACT]
+--FROM [edw].[FactAllAssessedAmounts] AS [FACT]
+--FROM [edw].[FactAssessedValue] AS [FACT]
+
+
+INNER JOIN [edw].[dimPropertyClass] AS [PC] ON [FACT2].[dimPropertyClass_SK] = [PC].[dimPropertyClass_SK]
      INNER JOIN [edw].[dimAssessmentGeography] AS [AG] ON [FACT].[dimAssessmentGeography_SK] = [AG].[dimAssessmentGeography_SK]
                                                           AND AG.[Roll Category Code] = '1'
      INNER JOIN [edw].[dimFolio] AS [FO] ON [FO].[dimFolio_BK] = [FACT].[dimFolio_BK]
@@ -81,7 +87,8 @@ FROM [edw].[FactRollSummary] AS [FACT]
 	 LEFT OUTER JOIN [edw].[dimElectoralDistrict] AS [ED] ON [ED].dimJurisdiction_SK = [AG].dimJurisdiction_SK
      LEFT OUTER JOIN [edw].[dimFolioCharacteristicTbl] AS [FC] ON [FC].[dimFolioCharacteristic_BK] = [FO].[Characteristic1_dimFolioCharacteristic_BK]
 WHERE [FACT].[Roll Year] = @p_RY
-      --AND [AG].[Neighbourhood Code] IN(@p_NH)
+AND [FACT2].[Roll Year] = @p_RY
+      AND [AG].[Neighbourhood Code] IN(@p_NH)
       --AND [ONA].[Company Name] like '%CROWN FEDERAL%'
       --AND [Roll Number] = '02101015'
       --AND [CN].[Country Desc] = 'HONG KONG'
@@ -89,8 +96,8 @@ WHERE [FACT].[Roll Year] = @p_RY
       --AND [OAD].dimAddress_SK in (3196101)
       --AND  [OAD].dimAddress_SK in (732382,1816349,2132057)
       --AND [OAD].[Address Line 1] is not null
-      AND [OAD].[Address Line 1] LIKE '% DIV STR%'
-      AND [AG].[Jurisdiction Code] = '234'
+      --AND [OAD].[Address Line 1] LIKE '% DIV STR%'
+      --AND [AG].[Jurisdiction Code] = '234'
 ORDER BY [FACT].[Roll Year], 
          [AG].[Area Code], 
          [AG].[Area], 
