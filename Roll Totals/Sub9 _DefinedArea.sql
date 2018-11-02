@@ -3,20 +3,21 @@ DECLARE @p_CN INT;
 DECLARE @p_JR CHAR(3);
 SET @p_RY = 2017;
 SET @p_CN = -1;
-SET @p_JR = '213';
- SELECT [FA].[Roll Year], 
+SET @p_JR = '764';
+SELECT [FA].[Roll Year], 
+       [TC].[Regional District Code], 
+       [TC].[Regional District], 
+       REVERSE(RIGHT([TC].[Electoral District Code], 1)) AS [Electoral District Code], 
+       [AG].[Area Code], 
        [AG].[Area], 
-       [AG].[Jurisdiction Code], 
-       [AG].[Jurisdiction Code]+' '+[AG].[Jurisdiction Type Desc]+' of '+[AG].[Jurisdiction Desc] AS [Jurisdiction Desc], 
-       [FO].[School District Code], 
-       IIF([PC].[Property Sub Class Code] = '0202', 999, [PC].[RowSortOrder]) AS [RowSortOrder], 
-       [PC].[Property Class Code],
-       CASE
-           WHEN [PC].[Property Class Code] = '01'
-           THEN 'RES'
-           WHEN [PC].[Property Class Code] <> '01'
-           THEN 'NONRES'
-       END AS [RESNONRES], 
+       [TC].[Jurisdiction Code], 
+       [TC].[Jurisdiction], 
+       [TC].[BCA Code], 
+       [TC].[Minor Tax Desc], 
+       [TC].[Tax Base Code], 
+       [PC].[Property Class Code], 
+       [PC].[Property Class], 
+       [PC].[Property Sub Class Code], 
        ISNULL([PC].[Property Sub Class Desc], [PC].[Property Class Desc]) AS [Property Class], 
        ISNULL(SUM([Occur Count]), 0) AS [Occurrences], 
        IIF(COUNT(CASE
@@ -45,15 +46,15 @@ SET @p_JR = '213';
        IIF(SUM([FA].[School Exemptions Land Value]) = 0, NULL, SUM([FA].[School Exemptions Land Value])) AS [Exempt_School_Land], 
        IIF(SUM([FA].[School Exemptions Building Value]) = 0, NULL, SUM([FA].[School Exemptions Building Value])) AS [Exempt_School_Improvements], 
        IIF(SUM([FA].[Net School Land Value]) = 0, NULL, SUM([FA].[Net School Land Value])) AS [Net_School_Land], 
-       IIF(SUM([FA].[Net School Building Value]) = 0, NULL, SUM([FA].[Net School Building Value])) AS [Net_School_Improvements],
-	   IIF(SUM([FA].[Actual Land Value]) = 0, NULL, SUM([FA].[Actual Land Value])) AS [Actual Land Value], 
+       IIF(SUM([FA].[Net School Building Value]) = 0, NULL, SUM([FA].[Net School Building Value])) AS [Net_School_Improvements], 
+       IIF(SUM([FA].[Actual Land Value]) = 0, NULL, SUM([FA].[Actual Land Value])) AS [Actual Land Value], 
        IIF(SUM([FA].[Actual Building Value]) = 0, NULL, SUM([FA].[Actual Building Value])) AS [Actual Building Value]
 FROM [edw].[FactAllAssessedAmounts] AS [FA]
      INNER JOIN [edw].[dimPropertyClass] AS [PC] ON [FA].[dimPropertyClass_SK] = [PC].[dimPropertyClass_SK]
      INNER JOIN [edw].[dimAssessmentGeography] AS [AG] ON [FA].[dimAssessmentGeography_SK] = [AG].[dimAssessmentGeography_SK]
                                                           AND AG.[Roll Category Code] = '1'
-     INNER JOIN [edw].[dimFolio] AS [FO] ON [FO].[dimFolio_SK] = [FA].[dimFolio_SK]
-                                            AND FO.[Folio Status Code] = '01'
+     INNER JOIN [dbo].[bridgeFolioMinorTaxTbl] AS [BTC] ON [FA].dimFolio_SK = [BTC].dimFolio_SK
+     INNER JOIN [edw].[dimMinorTaxCode] AS [TC] ON [BTC].dimMinorTaxCategory_SK = [TC].dimMinorTaxCategory_SK
      LEFT OUTER JOIN
 (
     SELECT [FAV].dimFolio_SK, 
@@ -70,27 +71,34 @@ FROM [edw].[FactAllAssessedAmounts] AS [FA]
     GROUP BY [FAV].dimFolio_SK, 
              [FAV].[Property Class Code]
     HAVING COUNT(*) > 1
-) AS [OCCUR] ON [OCCUR].dimFolio_SK = [FA].dimFolio_SK
+) AS [OCCUR] ON [OCCUR].dimFolio_SK = [BTC].dimFolio_SK
 WHERE [FA].[Roll Year] = @p_RY
       AND [FA].[Cycle Number] = @p_CN
-      AND [AG].[Jurisdiction Code] = @p_JR
+      AND [TC].[Jurisdiction Code] = @p_JR
+      AND [TC].[Minor Tax Desc] LIKE '%Saturna%'
+      AND [TC].[BCA Code] = 'A'
+      AND [AG].[Area Code] = '01'
 GROUP BY [FA].[Roll Year], 
+         [TC].[Regional District Code], 
+         [TC].[Regional District], 
+         REVERSE(RIGHT([TC].[Electoral District Code], 1)), 
+         [AG].[Area Code], 
          [AG].[Area], 
-         [AG].[Jurisdiction Code], 
-         [AG].[Jurisdiction Code]+' '+[AG].[Jurisdiction Type Desc]+' of '+[AG].[Jurisdiction Desc], 
-         [FO].[School District Code], 
-         IIF([PC].[Property Sub Class Code] = '0202', 999, [PC].[RowSortOrder]), 
-         [PC].[Property Class Code],
-         CASE
-             WHEN [PC].[Property Class Code] = '01'
-             THEN 'RES'
-             WHEN [PC].[Property Class Code] <> '01'
-             THEN 'NONRES'
-         END, 
+         [TC].[Jurisdiction Code], 
+         [TC].[Jurisdiction], 
+         [TC].[BCA Code], 
+         [TC].[Minor Tax Desc], 
+         [TC].[Tax Base Code], 
+         [PC].[Property Class Code], 
+         [PC].[Property Class], 
+         [PC].[Property Sub Class Code], 
          ISNULL([PC].[Property Sub Class Desc], [PC].[Property Class Desc])
 ORDER BY [FA].[Roll Year], 
-         [AG].[Area], 
-         [AG].[Jurisdiction Code], 
-         [FO].[School District Code], 
-         [RESNONRES] DESC, 
-         [RowSortOrder];
+         [TC].[Regional District Code], 
+         [AG].[Area Code], 
+         [TC].[Jurisdiction Code], 
+         [TC].[BCA Code], 
+         [TC].[Minor Tax Desc], 
+         [TC].[Tax Base Code], 
+         [PC].[Property Class Code], 
+         [PC].[Property Sub Class Code];
