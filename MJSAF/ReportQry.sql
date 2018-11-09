@@ -21,6 +21,7 @@ FROM [edw].[FactAllAssessedAmounts] AS [FA]
      ON [FO].[dimFolio_SK] = [OC].[dimFolio_SK]
 WHERE [FA].[Roll Year] = @p_RY
       AND [FA].[Cycle Number] = @p_CN
+	  AND [FO].[Jurisdiction Code] > '199'
 GROUP BY [FO].[Jurisdiction Code], 
          [PC].[Property Class Code], 
          [FA].[Roll Year], 
