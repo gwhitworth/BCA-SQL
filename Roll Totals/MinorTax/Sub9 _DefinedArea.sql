@@ -49,7 +49,7 @@ FROM [edw].[FactAllAssessedAmounts] AS [FA]
 	--INNER JOIN [edw].[bridgeJurisdictionRegionalHospitalDistrict] AS [BRH] ON [BTC].dimJurisdiction_SK = [BRH].dimJurisdiction_SK
 
 WHERE [FA].[Roll Year] = @p_RY
-
+	  AND [FA].[Cycle Number] <= (SELECT Max([Cycle Number]) FROM edw.dimRollCycle WHERE [Roll Year] = @p_RY )
       AND [TC].[Minor Tax Code] IN
 (
     SELECT [Minor Tax Code]
