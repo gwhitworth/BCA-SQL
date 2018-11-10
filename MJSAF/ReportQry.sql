@@ -22,6 +22,7 @@ FROM [edw].[FactAllAssessedAmounts] AS [FA]
 WHERE [FA].[Roll Year] = @p_RY
       AND [FA].[Cycle Number] = @p_CN
 	  AND [FO].[Jurisdiction Code] > '199'
+	  AND [FO].[BC Hydro Flag] IS NULL
 GROUP BY [FO].[Jurisdiction Code], 
          [PC].[Property Class Code], 
          [FA].[Roll Year], 
