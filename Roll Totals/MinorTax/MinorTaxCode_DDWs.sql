@@ -101,3 +101,53 @@ FROM [edw].[dimRegionalDistrict] AS [RD]
      ON [RD].[dimRegionalDistrict_SK] = [MT].[dimRegionalDistrict_SK]
 WHERE([RD].[Roll Year] = @p_RY)
      AND [MT].[Minor Tax Category Code] = @p_MTC;
+
+
+
+
+IF @p_BY = 'MT' AND @p_MTC IN ('ID','IT', 'LA')
+    BEGIN
+        SELECT DISTINCT 
+               [BCA Code]+' - '+[Minor Tax Desc] AS [Minor Tax Label], 
+               [Minor Tax Desc], 
+               [RowSortOrder]
+        FROM [EDW].[edw].[dimMinorTaxCode]
+        WHERE [Roll Year] = @p_RY
+              AND ([Minor Tax Category Code] = @p_MTC
+                   AND [Minor Tax Desc] LIKE '% Trust Area%')
+              OR [Minor Tax Category Code] = @p_MTC
+        ORDER BY [RowSortOrder], 
+                 [Minor Tax Label];
+    END;
+    ELSE
+    BEGIN
+        SELECT 'Not Applicable' AS [Minor Tax Label], 
+               'Not Applicable' AS [Minor Tax Desc], 
+               -1 AS [RowSortOrder];
+    END;
+
+
+IF @p_BY = 'MT'
+    BEGIN
+        SELECT DISTINCT 
+               [dimJurisdiction_SK], 
+               [dimJurisdiction_BK], 
+               [Jurisdiction Code], 
+               [Jurisdiction Desc], 
+               [Jurisdiction], 
+               [RowSortOrder]
+        FROM [EDW].[edw].[dimMinorTaxCode]
+        WHERE [Roll Year] = @p_RY
+              AND [Minor Tax Desc] = @p_MT
+        ORDER BY [RowSortOrder], 
+                 [Jurisdiction Code];
+    END;
+    ELSE
+    BEGIN
+        SELECT-3 AS [dimJurisdiction_SK], 
+              'NA' AS [dimJurisdiction_BK], 
+              'NA' AS [Jurisdiction Code], 
+              'Not Applicable' AS [Jurisdiction Desc], 
+              'Not Applicable' AS [Jurisdiction], 
+              -999 AS [RowSortOrder];
+    END;
