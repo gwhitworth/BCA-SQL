@@ -12,16 +12,36 @@ SELECT [FA].[Roll Year],
        IIF([PC].[Property Sub Class Code] = '0202', '0201', ISNULL([PC].[Property Sub Class Code], [PC].[Property Class Code])) AS [PSC Code], 
        IIF([PC].[Property Sub Class Code] = '0202', 'Utilities', ISNULL([PC].[Property Sub Class Desc], [PC].[Property Class Desc])) AS [Property Subclass], 
        COUNT([OC].[Property Class Occurrence]) AS [Folio Count], 
-       SUM([OC].[Property Class Occurrence]) AS [Occurrence Count], 
+       SUM(CASE
+               WHEN [FA].[Actual Land Value] > 0
+                    OR [FA].[Actual Building Value] > 0
+               THEN [OC].[Property Class Occurrence]
+               ELSE 0
+           END) AS [Occurrence Count], 
        SUM([FA].[Actual Land Value]) AS [Actual - Land], 
        SUM([FA].[Actual Building Value]) AS [Actual - Impr], 
-       SUM([OC].[Property Class Occurrence]) AS [General Occurrences], 
+       SUM(CASE
+               WHEN [FA].[Net General Land Value] > 0
+                    OR [FA].[Net General Building Value] > 0
+               THEN [OC].[Property Class Occurrence]
+               ELSE 0
+           END) AS [General Occurrences], 
        SUM([FA].[Net General Land Value]) AS [General Net - Land], 
        SUM([FA].[Net General Building Value]) AS [General Net - Impr], 
-       SUM([OC].[Property Class Occurrence]) AS [School Occurrences], 
+       SUM(CASE
+               WHEN [FA].[Net School Land Value] > 0
+                    OR [FA].[Net School Building Value] > 0
+               THEN [OC].[Property Class Occurrence]
+               ELSE 0
+           END) AS [School Occurrences], 
        SUM([FA].[Net School Land Value]) AS [School Net - Land], 
        SUM([FA].[Net School Building Value]) AS [School Net - Impr], 
-       SUM([OC].[Property Class Occurrence]) AS [Hospital Occurrences], 
+       SUM(CASE
+               WHEN [FA].[Net Other Land Value] > 0
+                    OR [FA].[Net Other Building Value] > 0
+               THEN [OC].[Property Class Occurrence]
+               ELSE 0
+           END) AS [Hospital Occurrences], 
        SUM([FA].[Net Other Land Value]) AS [Hospital Net - Land], 
        SUM([FA].[Net Other Building Value]) AS [Hospital Net - Impr]
 FROM [edw].[FactAllAssessedAmounts] AS [FA]
