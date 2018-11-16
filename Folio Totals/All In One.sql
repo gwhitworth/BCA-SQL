@@ -52,6 +52,7 @@ SELECT DISTINCT
        [FRS].[Previous Year1 Total Actual Value] AS [Previous Roll Value], 
        [FO].[General Service Code], 
        [PL].[FN Reserve Code] AS [Indian Band (Reservation Number)], 
+
 	    CASE
 			WHEN [BTC].[Minor Tax Category Code] = 'DE'
 			THEN [TC].[BCA Code]
@@ -71,7 +72,19 @@ SELECT DISTINCT
        '??' AS [Document Number (LTSA Title No)], 
        [PC].[Property Class Desc] AS [Property Class (Land)], 
        [PC].[Property Sub Class Desc] AS [Property Sub-Class (Land)], 
-       [PC].[Property Class Desc] AS [Property Class (Improvement)], 
+
+       	CASE
+			WHEN [Actual Land Value] >  0
+			THEN [FVL].[Exempt Tax Code]
+		END AS [Exempt Tax Code Land],
+	   
+	   [PC].[Property Class Desc] AS [Property Class (Improvement)],
+
+       	CASE
+			WHEN [Actual Building Value] >  0
+			THEN [FVL].[Exempt Tax Code]
+		END AS [Exempt Tax Code Improvement],
+
        [PC].[Property Sub Class Desc] AS [Property Sub-Class (Improvement)], 
        [BR_FA].[Bulk Code], 
        [BR_FA].[Party Type], 
@@ -88,9 +101,9 @@ SELECT DISTINCT
        [Gross Other Building Value] AS [Hospital Gross Improvement], 
        [Gross Other Land Value] + [Gross Other Building Value] AS [Hospital Gross Total], 
        [General Exemptions Land Value] AS [General Exempt Land], 
-       '??' AS [Exempt Tax Code Land], 
+       
        [General Exemptions Building Value] AS [General Exempt Improvement], 
-       '??' AS [Exempt Tax Code Improvement], 
+       
        [General Exemptions Land Value] + [General Exemptions Building Value] AS [General Exempt Total], 
        [School Exemptions Land Value] AS [School Exempt Land], 
        [School Exemptions Building Value] AS [School Exempt Improvement], 
@@ -107,7 +120,7 @@ SELECT DISTINCT
        [Net Other Land Value] AS [Hospital Net Land], 
        [Net Other Building Value] AS [Hospital Net Improvement], 
        [Net Other Land Value] + [Net Other Building Value] AS [Hospital Net Total]
-FROM edw.FactAllAssessedAmounts AS [FACT]
+FROM [EDW].[edw].[FactAllAssessedAmounts] AS [FACT]
      INNER JOIN [edw].[FactAssessedValue] AS [FAV] ON [FAV].[dimFolio_SK] = [FACT].[dimFolio_SK]
      INNER JOIN [edw].[FactRollSummary] AS [FRS] ON [FRS].[dimFolio_SK] = [FACT].[dimFolio_SK]
      INNER JOIN [edw].[FactActualValue] AS [FVL] ON [FVL].[dimFolio_SK] = [FACT].[dimFolio_SK]
