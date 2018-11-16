@@ -67,12 +67,12 @@ FROM
                  ON [FO].[dimFolio_SK] = [AV].[dimFolio_SK]
                     AND [FO].[Folio Status Code] = '01'
                  INNER JOIN [edw].[dimSchoolDistrict] AS [SD]
-                 ON [SD].[School  District Code] = [FO].[School  District Code]
+                 ON [SD].[School District Code] = [FO].[School District Code]
                     AND [SD].[Roll Year] = @p_RY
             WHERE [AV].[Roll Year] = @p_RY
                   AND [AV].[Property Class Code] < 99
                   AND [AV].[Cycle Number] <= @p_CN
-                  AND [SD].[School  District Code] IN(@p_SD)
+                  AND [SD].[School District Code] IN(@p_SD)
             GROUP BY [AG].[Jurisdiction Code], 
                      [AG].[Jurisdiction Code]+' '+[AG].[Jurisdiction Type Desc]+' of '+[AG].[Jurisdiction Desc], 
                      [AG].[Jurisdiction Code]+' '+[AG].[Jurisdiction Desc], 
@@ -86,7 +86,7 @@ FROM
 ) AS [OCCUR]
 INNER JOIN
 (
-    SELECT [SD].[School  District Code] AS [School District Code], 
+    SELECT [SD].[School District Code] AS [School District Code], 
            [SD].[School District Desc] AS  [School District], 
            [AG].[Jurisdiction Code], 
            SUM(CASE

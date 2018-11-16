@@ -15,7 +15,7 @@ SELECT [FA].[Roll Year],
            THEN 'NONRES'
        END AS [RESNONRES], 
        ISNULL([PC].[Property Sub Class Desc], [PC].[Property Class Desc]) AS [Property Class], 
-       ISNULL(SUM([Occur Count]), 0) AS [Occurrences], 
+       ISNULL(SUM([OC].[Property Class Occurrence]), 0) AS [Occurrences], 
        IIF(COUNT(CASE
                      WHEN [FA].[Assessment Code] = '01'
                           AND [PC].[Property Class Code] = '01'
@@ -47,23 +47,8 @@ FROM [edw].[FactAllAssessedAmounts] AS [FA]
      INNER JOIN [edw].[dimPropertyClass] AS [PC] ON [FA].[dimPropertyClass_SK] = [PC].[dimPropertyClass_SK]
      INNER JOIN [edw].[dimAssessmentGeography] AS [AG] ON [FA].[dimAssessmentGeography_SK] = [AG].[dimAssessmentGeography_SK]
                                                           AND AG.[Roll Category Code] = '1'
-     LEFT OUTER JOIN
-(
-    SELECT [FAV].dimFolio_SK, 
-           [FAV].[Property Class Code], 
-           COUNT(*) - 1 AS [Occur Count]
-    FROM [EDW].[edw].[FactAllAssessedAmounts] AS [FAV]
-         INNER JOIN [edw].[dimPropertyClass] AS [PC] ON [FAV].[dimPropertyClass_SK] = [PC].[dimPropertyClass_SK]
-         INNER JOIN [edw].[dimAssessmentGeography] AS [AG] ON [FAV].[dimAssessmentGeography_SK] = [AG].[dimAssessmentGeography_SK]
-                                                              AND AG.[Roll Category Code] = '1'
-    WHERE [FAV].[Roll Year] = @p_RY
-          AND [FAV].[Cycle Number] <= @p_CN
-          AND [Assessment Code] = '02'
-          AND [AG].[Area Code] = @p_AR
-    GROUP BY [FAV].dimFolio_SK, 
-             [FAV].[Property Class Code]
-    HAVING COUNT(*) > 1
-) AS [OCCUR] ON [OCCUR].dimFolio_SK = [FA].dimFolio_SK
+     INNER JOIN [edw].[FactPropertyClassOccurrenceCount] AS [OC]
+     ON [FA].[dimFolio_SK] = [OC].[dimFolio_SK]
 WHERE [FA].[Roll Year] = @p_RY
       AND [FA].[Cycle Number] = @p_CN
       AND [AG].[Area Code] = @p_AR

@@ -31,34 +31,25 @@ SELECT DISTINCT
        ISNULL([PL].[PID], '') AS [PID], 
        '??' AS [SUPP Occupancy Date], 
        [RD].[Regional District Code], 
-       [FO].[Electoral Area Code], 
-
-	    CASE
-			WHEN [BTC].[Minor Tax Category Code] = 'SM'
-			THEN [TC].[BCA Code]
-		END AS [Specified Municipal Code],
-
-
-
+       [FO].[Electoral Area Code],
+       CASE
+           WHEN [BTC].[Minor Tax Category Code] = 'SM'
+           THEN [TC].[BCA Code]
+       END AS [Specified Municipal Code], 
        [FO].[Improvement District Code], 
-       [FO].[Region Hospital District Code], 
-
-	    CASE
-			WHEN [BTC].[Minor Tax Category Code] = 'SA'
-			THEN [TC].[BCA Code]
-		END AS [Service Area Code],
-
-
+       [FO].[Region Hospital District Code],
+       CASE
+           WHEN [BTC].[Minor Tax Category Code] = 'SA'
+           THEN [TC].[BCA Code]
+       END AS [Service Area Code], 
        [FRS].[Previous Year1 Total Actual Value] AS [Previous Roll Value], 
        [FO].[General Service Code], 
-       [PL].[FN Reserve Code] AS [Indian Band (Reservation Number)], 
-
-	    CASE
-			WHEN [BTC].[Minor Tax Category Code] = 'DE'
-			THEN [TC].[BCA Code]
-		END AS [Defined Code],
-	   
-	   [AG].[Region Code] AS [Specified Regional Code], 
+       [PL].[FN Reserve Code] AS [Indian Band (Reservation Number)],
+       CASE
+           WHEN [BTC].[Minor Tax Category Code] = 'DE'
+           THEN [TC].[BCA Code]
+       END AS [Defined Code], 
+       [AG].[Region Code] AS [Specified Regional Code], 
        [PL].[Tenure Code] AS [Tenure Code], 
        [FO].[BC Transit Flag], 
        [ALR].[Agricultural Land Reserve Code] AS [ALR Code], 
@@ -71,20 +62,16 @@ SELECT DISTINCT
        [PL].[Land Branch File] AS [Lands Branch File Number], 
        '??' AS [Document Number (LTSA Title No)], 
        [PC].[Property Class Desc] AS [Property Class (Land)], 
-       [PC].[Property Sub Class Desc] AS [Property Sub-Class (Land)], 
-
-       	CASE
-			WHEN [Actual Land Value] >  0
-			THEN [FVL].[Exempt Tax Code]
-		END AS [Exempt Tax Code Land],
-	   
-	   [PC].[Property Class Desc] AS [Property Class (Improvement)],
-
-       	CASE
-			WHEN [Actual Building Value] >  0
-			THEN [FVL].[Exempt Tax Code]
-		END AS [Exempt Tax Code Improvement],
-
+       [PC].[Property Sub Class Desc] AS [Property Sub-Class (Land)],
+       CASE
+           WHEN [Actual Land Value] > 0
+           THEN [FVL].[Exempt Tax Code]
+       END AS [Exempt Tax Code Land], 
+       [PC].[Property Class Desc] AS [Property Class (Improvement)],
+       CASE
+           WHEN [Actual Building Value] > 0
+           THEN [FVL].[Exempt Tax Code]
+       END AS [Exempt Tax Code Improvement], 
        [PC].[Property Sub Class Desc] AS [Property Sub-Class (Improvement)], 
        [BR_FA].[Bulk Code], 
        [BR_FA].[Party Type], 
@@ -101,9 +88,7 @@ SELECT DISTINCT
        [Gross Other Building Value] AS [Hospital Gross Improvement], 
        [Gross Other Land Value] + [Gross Other Building Value] AS [Hospital Gross Total], 
        [General Exemptions Land Value] AS [General Exempt Land], 
-       
        [General Exemptions Building Value] AS [General Exempt Improvement], 
-       
        [General Exemptions Land Value] + [General Exemptions Building Value] AS [General Exempt Total], 
        [School Exemptions Land Value] AS [School Exempt Land], 
        [School Exemptions Building Value] AS [School Exempt Improvement], 
@@ -121,47 +106,52 @@ SELECT DISTINCT
        [Net Other Building Value] AS [Hospital Net Improvement], 
        [Net Other Land Value] + [Net Other Building Value] AS [Hospital Net Total]
 FROM [EDW].[edw].[FactAllAssessedAmounts] AS [FACT]
-     INNER JOIN [edw].[FactAssessedValue] AS [FAV] ON [FAV].[dimFolio_SK] = [FACT].[dimFolio_SK]
-     INNER JOIN [edw].[FactRollSummary] AS [FRS] ON [FRS].[dimFolio_SK] = [FACT].[dimFolio_SK]
-     INNER JOIN [edw].[FactActualValue] AS [FVL] ON [FVL].[dimFolio_SK] = [FACT].[dimFolio_SK]
-	INNER JOIN [edw].[bridgeFolioMinorTax] AS [BTC]
+     INNER JOIN [edw].[FactAssessedValue] AS [FAV]
+     ON [FAV].[dimFolio_SK] = [FACT].[dimFolio_SK]
+     INNER JOIN [edw].[FactRollSummary] AS [FRS]
+     ON [FRS].[dimFolio_SK] = [FACT].[dimFolio_SK]
+     INNER JOIN [edw].[FactActualValue] AS [FVL]
+     ON [FVL].[dimFolio_SK] = [FACT].[dimFolio_SK]
+     INNER JOIN [edw].[bridgeFolioMinorTax] AS [BTC]
      ON [FACT].[dimFolio_SK] = [BTC].[dimFolio_SK]
      INNER JOIN [edw].[dimMinorTaxCode] AS [TC]
      ON [BTC].[dimMinorTaxCode_SK] = [TC].[dimMinorTaxCode_SK]
-
-
-
-     INNER JOIN [edw].[dimPropertyClass] AS [PC] ON [FACT].[dimPropertyClass_SK] = [PC].[dimPropertyClass_SK]
-     INNER JOIN [edw].[dimAssessmentGeography] AS [AG] ON [FACT].[dimAssessmentGeography_SK] = [AG].[dimAssessmentGeography_SK]
+     INNER JOIN [edw].[dimPropertyClass] AS [PC]
+     ON [FACT].[dimPropertyClass_SK] = [PC].[dimPropertyClass_SK]
+     INNER JOIN [edw].[dimAssessmentGeography] AS [AG]
+     ON [FACT].[dimAssessmentGeography_SK] = [AG].[dimAssessmentGeography_SK]
      -- AND AG.[Roll Category Code] = '1'
-     INNER JOIN [edw].[dimFolio] AS [FO] ON [FO].[dimFolio_SK] = [FACT].[dimFolio_SK]
-                                            AND FO.[Folio Status Code] = '01'
-     INNER JOIN [edw].[dimAgriculturalLandReserve] AS [ALR] ON [FO].[dimAgriculturalLandReserve_SK] = [ALR].[dimAgriculturalLandReserve_SK]
-     INNER JOIN [edw].[dimManualClass] AS [MC] ON [MC].[dimManualClass_SK] = [FAV].[dimManualClass_SK]
-     INNER JOIN [edw].[dimRegionalDistrict] AS [RD] ON [RD].[dimRegionalDistrict_SK] = [FO].[dimRegionalDistrict_SK]
-     INNER JOIN [edw].[bridgeParcelFolio] AS [BR_PF] ON [BR_PF].[dimFolio_SK] = [FO].[dimFolio_SK]
-     INNER JOIN [edw].[dimParcel] AS [PL] ON [PL].[dimParcel_SK] = [BR_PF].[dimParcel_SK]
-     INNER JOIN [edw].[bridgeOwnerFolioAddress] AS [BR_FA] ON [BR_FA].[dimFolio_SK] = [FO].[dimFolio_SK]
-     INNER JOIN [edw].[dimName] AS [ONA] ON [ONA].[dimName_SK] = [BR_FA].[dimName_SK]
-     INNER JOIN [edw].[dimAddress] AS [OAD] ON [OAD].[dimAddress_SK] = [BR_FA].[dimAddress_SK]
-     INNER JOIN [edw].[dimCountry] AS [CN] ON [CN].[dimCountry_SK] = [OAD].[dimCountry_SK]
-
-
-
-
-     LEFT OUTER JOIN [edw].[dimFolioCharacteristicTbl] AS [FC] ON [FC].[dimFolioCharacteristic_BK] = [FO].[Characteristic1_dimFolioCharacteristic_BK]
+     INNER JOIN [edw].[dimFolio] AS [FO]
+     ON [FO].[dimFolio_SK] = [FACT].[dimFolio_SK]
+        AND [FO].[Folio Status Code] = '01'
+     INNER JOIN [edw].[dimAgriculturalLandReserve] AS [ALR]
+     ON [FO].[dimAgriculturalLandReserve_SK] = [ALR].[dimAgriculturalLandReserve_SK]
+     INNER JOIN [edw].[dimManualClass] AS [MC]
+     ON [MC].[dimManualClass_SK] = [FAV].[dimManualClass_SK]
+     INNER JOIN [edw].[dimRegionalDistrict] AS [RD]
+     ON [RD].[dimRegionalDistrict_SK] = [FO].[dimRegionalDistrict_SK]
+     INNER JOIN [edw].[bridgeParcelFolio] AS [BR_PF]
+     ON [BR_PF].[dimFolio_SK] = [FO].[dimFolio_SK]
+     INNER JOIN [edw].[dimParcel] AS [PL]
+     ON [PL].[dimParcel_SK] = [BR_PF].[dimParcel_SK]
+     INNER JOIN [edw].[bridgeOwnerFolioAddress] AS [BR_FA]
+     ON [BR_FA].[dimFolio_SK] = [FO].[dimFolio_SK]
+     INNER JOIN [edw].[dimName] AS [ONA]
+     ON [ONA].[dimName_SK] = [BR_FA].[dimName_SK]
+     INNER JOIN [edw].[dimAddress] AS [OAD]
+     ON [OAD].[dimAddress_SK] = [BR_FA].[dimAddress_SK]
+     INNER JOIN [edw].[dimCountry] AS [CN]
+     ON [CN].[dimCountry_SK] = [OAD].[dimCountry_SK]
+     LEFT OUTER JOIN [edw].[dimFolioCharacteristicTbl] AS [FC]
+     ON [FC].[dimFolioCharacteristic_BK] = [FO].[Characteristic1_dimFolioCharacteristic_BK]
 WHERE [FACT].[Roll Year] = @p_RY
       AND [AG].[Neighbourhood Code] = @p_NH
-	  --AND [BTC].[Minor Tax Category Code] = 'DE'
---ORDER BY [FACT].[Roll Year], 
---         [AG].[Area Code], 
---         [AG].[Jurisdiction Code], 
---         [FO].[Roll Number], 
---         [AG].[Neighbourhood Code], 
---         [FO].[Primary Actual Use Code], 
---         [MC].[Manual Class Code], 
---         [FO].[School District Code], 
---         [RD].[Regional District Code], 
---         [ALR Code], 
---         [PL].[Tenure Code], 
---         [FC].[Folio Characteristic Code];
+ORDER BY [FACT].[Roll Year], 
+         [FO].[School District Code], 
+         [AG].[Jurisdiction], 
+         [FO].[Roll Number], 
+         [BR_FA].[Equity Type], 
+         [ONA].[First Name], 
+         [ONA].[Middle Name], 
+         [ONA].[Last Name], 
+         [ONA].[Company Name];
