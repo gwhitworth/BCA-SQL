@@ -13,8 +13,8 @@ IF @p_TYPE = 'RD'
     BEGIN
         SELECT DISTINCT 
                [AG].[Area Code], 
-               [dimJurisdiction_SK], 
-               [dimJurisdiction_BK], 
+               [AG].[dimJurisdiction_SK], 
+               [AG].[dimJurisdiction_BK], 
                [AG].[Jurisdiction Code], 
                [Jurisdiction Desc], 
                [Jurisdiction], 

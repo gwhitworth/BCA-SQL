@@ -1,16 +1,16 @@
 DECLARE @p_RY INT;
 DECLARE @p_CN INT;
 DECLARE @p_JR CHAR(3);
-DECLARE @p_N CHAR(6);
+DECLARE @p_NH CHAR(6);
 SET @p_RY = 2017;
 SET @p_CN = -1;
 SET @p_JR = '213';
-SET @p_N = '213101';
+SET @p_NH = '213101';
 SELECT [FA].[Roll Year], 
        [AG].[Area], 
        [AG].[Jurisdiction Code], 
        [AG].[Jurisdiction Code]+' '+[AG].[Jurisdiction Type Desc]+' of '+[AG].[Jurisdiction Desc] AS [Jurisdiction Desc], 
-       [FO].[School  District Code], 
+       [FO].[School District Code], 
        [AG].[Neighbourhood Code], 
        [AG].[Neighbourhood], 
        IIF([PC].[Property Sub Class Code] = '0202', 999, [PC].[RowSortOrder]) AS [RowSortOrder], 
@@ -22,7 +22,7 @@ SELECT [FA].[Roll Year],
            THEN 'NONRES'
        END AS [RESNONRES], 
        ISNULL([PC].[Property Sub Class Desc], [PC].[Property Class Desc]) AS [Property Class], 
-       ISNULL(SUM([Occur Count]), 0) AS [Occurrences], 
+       ISNULL(SUM([OC].[Property Class Occurrence]), 0) AS [Occurrences], 
        IIF(COUNT(CASE
                      WHEN [FA].[Assessment Code] = '01'
                           AND [PC].[Property Class Code] = '01'
@@ -58,31 +58,16 @@ FROM [edw].[FactAllAssessedAmounts] AS [FA]
                                                           AND AG.[Roll Category Code] = '1'
      INNER JOIN [edw].[dimFolio] AS [FO] ON [FO].[dimFolio_SK] = [FA].[dimFolio_SK]
                                             AND FO.[Folio Status Code] = '01'
-     LEFT OUTER JOIN
-(
-    SELECT [FAV].dimFolio_SK, 
-           [FAV].[Property Class Code], 
-           COUNT(*) - 1 AS [Occur Count]
-    FROM [EDW].[edw].[FactAllAssessedAmounts] AS [FAV]
-         INNER JOIN [edw].[dimPropertyClass] AS [PC] ON [FAV].[dimPropertyClass_SK] = [PC].[dimPropertyClass_SK]
-         INNER JOIN [edw].[dimAssessmentGeography] AS [AG] ON [FAV].[dimAssessmentGeography_SK] = [AG].[dimAssessmentGeography_SK]
-                                                              AND AG.[Roll Category Code] = '1'
-    WHERE [FAV].[Roll Year] = @p_RY
-          AND [FAV].[Cycle Number] <= @p_CN
-          AND [Assessment Code] = '02'
-          AND [AG].[Neighbourhood Code] = @p_N
-    GROUP BY [FAV].dimFolio_SK, 
-             [FAV].[Property Class Code]
-    HAVING COUNT(*) > 1
-) AS [OCCUR] ON [OCCUR].dimFolio_SK = [FA].dimFolio_SK
+     INNER JOIN [edw].[FactPropertyClassOccurrenceCount] AS [OC]
+     ON [FA].[dimFolio_SK] = [OC].[dimFolio_SK]
 WHERE [FA].[Roll Year] = @p_RY
       AND [FA].[Cycle Number] = @p_CN
-      AND [AG].[Neighbourhood Code] = @p_N
+      AND [AG].[Neighbourhood Code] = @p_NH
 GROUP BY [FA].[Roll Year], 
          [AG].[Area], 
          [AG].[Jurisdiction Code], 
          [AG].[Jurisdiction Code]+' '+[AG].[Jurisdiction Type Desc]+' of '+[AG].[Jurisdiction Desc], 
-         [FO].[School  District Code], 
+         [FO].[School District Code], 
          [AG].[Neighbourhood Code], 
          [AG].[Neighbourhood], 
          IIF([PC].[Property Sub Class Code] = '0202', 999, [PC].[RowSortOrder]), 
@@ -97,7 +82,7 @@ GROUP BY [FA].[Roll Year],
 ORDER BY [FA].[Roll Year], 
          [AG].[Area], 
          [AG].[Jurisdiction Code], 
-         [FO].[School  District Code], 
+         [FO].[School District Code], 
          [AG].[Neighbourhood Code], 
          [AG].[Neighbourhood], 
          [RESNONRES] DESC, 

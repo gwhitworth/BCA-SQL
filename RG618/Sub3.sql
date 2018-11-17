@@ -6,29 +6,31 @@ SET @p_CN = -1;
 SET @p_RD = '03';
 SELECT [FA].[Roll Year], 
        [RD].[Regional District], 
-       IIF([ED].[BCA Code] IS NULL, 'URBAN', 'RURAL') AS [BCA Code], 
+       '(AA'+[AG].[Area Code]+')' AS [Area Code], 
+       [AG].[Jurisdiction Code]+' '+[AG].[Jurisdiction Type Desc]+' of '+[AG].[Jurisdiction Desc] AS [Jurisdiction], 
        [PC].[Property Class Code], 
        [PC].[Property Class Desc], 
+       [ED].[BCA Code], 
        COUNT(DISTINCT CASE
                           WHEN [FA].[Assessment Code] = '01'
                           THEN [FA].[dimFolio_SK]
                       END) AS [Gen Folio], 
        SUM(CASE
                WHEN [FA].[Assessment Code] = '01'
-               THEN [FA].[Net General Land Value]
+               THEN IIF([FA].[Net General Land Value] = 0, NULL, [FA].[Net General Land Value])
            END) AS [Gen Land], 
        SUM(CASE
                WHEN [FA].[Assessment Code] = '02'
-               THEN [FA].[Net General Building Value]
+               THEN IIF([FA].[Net General Building Value] = 0, NULL, [FA].[Net General Building Value])
            END) AS [Gen Improvements], 
        ISNULL(SUM([OC].[Property Class Occurrence]), 0) AS [Hosp Folio], 
        SUM(CASE
                WHEN [FA].[Assessment Code] = '01'
-               THEN [FA].[Net Other Land Value]
+               THEN IIF([FA].[Net Other Land Value] = 0, NULL, [FA].[Net Other Land Value])
            END) AS [Hosp Land], 
        SUM(CASE
                WHEN [FA].[Assessment Code] = '02'
-               THEN [FA].[Net Other Building Value]
+               THEN IIF([FA].[Net Other Building Value] = 0, NULL, [FA].[Net Other Building Value])
            END) AS [Hosp Improvements]
 FROM [edw].[FactAllAssessedAmounts] AS [FA]
      INNER JOIN [edw].[dimPropertyClass] AS [PC]
@@ -52,11 +54,15 @@ WHERE [FA].[Roll Year] = @p_RY
       AND ISNULL([ED].[BCA Code], '1') <> 'Z'
 GROUP BY [FA].[Roll Year], 
          [RD].[Regional District], 
-         IIF([ED].[BCA Code] IS NULL, 'URBAN', 'RURAL'), 
+         '(AA'+[AG].[Area Code]+')', 
+         [AG].[Jurisdiction Code]+' '+[AG].[Jurisdiction Type Desc]+' of '+[AG].[Jurisdiction Desc], 
          [PC].[Property Class Code], 
-         [PC].[Property Class Desc]
+         [PC].[Property Class Desc], 
+         [ED].[BCA Code]
 ORDER BY [FA].[Roll Year], 
          [RD].[Regional District], 
-         [BCA Code] DESC, 
+         [Area Code], 
+         [Jurisdiction], 
          [PC].[Property Class Code], 
-         [PC].[Property Class Desc];
+         [PC].[Property Class Desc], 
+         [ED].[BCA Code];

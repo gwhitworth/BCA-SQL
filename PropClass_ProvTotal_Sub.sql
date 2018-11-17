@@ -1,17 +1,11 @@
-DECLARE @p_RY INT;
+DECLARE @p_RY INT
 DECLARE @p_CN INT;
-DECLARE @p_RD CHAR(2);
+DECLARE @p_JR CHAR(3);
 SET @p_RY = 2017;
 SET @p_CN = -1;
-SET @p_RD = '03';
-SELECT [FA].[Roll Year], 
-       [RD].[Regional District], 
-       [AG].[Jurisdiction Code], 
-       [AG].[Jurisdiction Code]+' '+[AG].[Jurisdiction Type Desc]+' of '+[AG].[Jurisdiction Desc] AS [Jurisdiction], 
-       '(AA'+[AG].[Area Code]+')' AS [Area Code], 
-       [PC].[Property Class Code], 
+SET @p_JR = '213';;
+SELECT [PC].[Property Class Code], 
        [PC].[Property Class Desc], 
-       [ED].[BCA Code], 
        COUNT(DISTINCT [FA].dimFolio_SK) AS [Folio], 
        ISNULL(SUM([OC].[Property Class Occurrence]), 0) AS [Occurrence], 
        SUM(CASE
@@ -29,25 +23,15 @@ FROM [edw].[FactAllAssessedAmounts] AS [FA]
                                             AND [FO].[Folio Status Code] = '01'
      --AND [BC Transit Flag] = 'Y'
      INNER JOIN [edw].[dimRegionalDistrict] AS [RD] ON [RD].[dimRegionalDistrict_SK] = [FO].[dimRegionalDistrict_SK]
-          INNER JOIN [edw].[bridgeJurisdictionRegionalDistrictElectoralDistrict] AS [ED]
+     INNER JOIN [edw].[bridgeJurisdictionRegionalDistrictElectoralDistrict] AS [ED]
      ON [ED].[dimJurisdiction_SK] = [AG].[dimJurisdiction_SK]
      INNER JOIN [edw].[FactPropertyClassOccurrenceCount] AS [OC]
      ON [FA].[dimFolio_SK] = [OC].[dimFolio_SK]
 WHERE [FA].[Roll Year] = @p_RY
       AND [FA].[Cycle Number] = @p_CN
-      AND [RD].[Regional District Code] = @p_RD
-      AND [AG].[Jurisdiction Code] BETWEEN '200' AND '800'
-GROUP BY [FA].[Roll Year], 
-         [RD].[Regional District], 
-         [AG].[Jurisdiction Code], 
-         [AG].[Jurisdiction Code]+' '+[AG].[Jurisdiction Type Desc]+' of '+[AG].[Jurisdiction Desc], 
-         '(AA'+[AG].[Area Code]+')', 
-         [PC].[Property Class Code], 
-         [PC].[Property Class Desc], 
-         [ED].[BCA Code]
-ORDER BY [FA].[Roll Year], 
-         [RD].[Regional District], 
-         [AG].[Jurisdiction Code], 
-         [Area Code], 
-         [PC].[Property Class Code], 
-         [ED].[BCA Code];
+      AND [RD].[Regional District Code] IN('03', '15')
+     AND [AG].[Jurisdiction Code] BETWEEN '200' AND '800'
+     AND [ED].[BCA Code] IS NULL
+GROUP BY [PC].[Property Class Code], 
+         [PC].[Property Class Desc]
+ORDER BY [PC].[Property Class Code];
