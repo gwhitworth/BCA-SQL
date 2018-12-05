@@ -73,7 +73,7 @@ SELECT DISTINCT
 --       [AG].[Area Code] AS [Local Area Code], 
 --	          [BR_FA].[Equity Type] AS [Equity Code], 
 
-0 AS [Owner Count],
+--[OWNCNT].CNT AS [Owner Count],
 0 AS [Owner Seq #],
        [ONA].[First Name] AS [Owner FName], 
        [ONA].[Middle Name] AS [Owner MName], 
@@ -230,6 +230,21 @@ FROM [EDW].[edw].[FactAllAssessedAmounts] AS [FACT]
      ON [HD].[dimRegionalHospitalDistrict_SK] = [FO].[dimRegionalHospitalDistrict_SK]
 --INNER JOIN [edw].[dimElectoralDistrict] AS [ED]
 --     ON [ED].[E] = [FO].[Electoral Area Code]
+
+--INNER JOIN (SELECT TOP 1000 [FO].[dimFolio_SK], 
+--                COUNT(*) AS [CNT]
+--FROM [EDW].[edw].[bridgeOwnerFolioAddress] AS [OFA]
+--     INNER JOIN [edw].[dimName] AS [ONA]
+--     ON [ONA].[dimName_SK] = [OFA].[dimName_SK]
+--     INNER JOIN [edw].[dimAddress] AS [OAD]
+--     ON [OAD].[dimAddress_SK] = [OFA].[dimAddress_SK]
+--     INNER JOIN [edw].[dimFolio] AS [FO]
+--     ON [FO].[dimFolio_SK] = [OFA].[dimFolio_SK]
+--        AND [FO].[Folio Status Code] = '01'
+--WHERE [OFA].[Roll Year] = 2017
+--GROUP BY [FO].[dimFolio_SK]) AS [OWNCNT]
+--ON [OWNCNT].dimFolio_SK = [FO].[dimFolio_SK]
+
      LEFT OUTER JOIN [edw].[dimFolioCharacteristicTbl] AS [FC]
      ON [FC].[dimFolioCharacteristic_BK] = [FO].[Characteristic1_dimFolioCharacteristic_BK]
 
