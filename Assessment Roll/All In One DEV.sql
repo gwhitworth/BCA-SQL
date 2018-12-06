@@ -15,24 +15,70 @@ Regional Hospital District Code
 Regional Hospital District Description
 Electoral Area Code
 Electoral Area Description
+
 Specified Municipal Code
 Improvement District Code
 Improvement District Description
 Service Area Code
 General Service Area Code
 General Service Area Description
+
 Islands Trust Code
 Islands Trust Description
 Local Area Code
+
 Indian Band (Reserve Number)
 Indian Band (Reserve Description)
-Equity Code*/
+Equity Code
+*/
 
 DECLARE @p_RY [INT];
 DECLARE @p_NH CHAR(6);
 SET @p_RY = 2017;
 SET @p_NH = '234010';
+
+DROP TABLE IF EXISTS #FolioMinorTax;
+WITH FMT([dimFolio_SK], 
+              [CAT], 
+              [CODE])
+     AS (SELECT [BTC].[dimFolio_SK], 
+                [BTC].[Minor Tax Category] AS [CAT], 
+                [TC].[BCA Code] AS [CODE]
+         FROM [edw].[bridgeFolioMinorTax] AS [BTC]
+              INNER JOIN [edw].[dimMinorTaxCode] AS [TC]
+              ON [BTC].[dimMinorTaxCode_SK] = [TC].[dimMinorTaxCode_SK]
+			  INNER JOIN [edw].[factValuesByAssessmentCodePropertyClass] AS [FACT]
+			  ON [FACT].dimFolio_SK = [BTC].dimFolio_SK
+			  INNER JOIN [edw].[dimAssessmentGeography] AS [AG]
+				ON [FACT].[dimAssessmentGeography_SK] = [AG].[dimAssessmentGeography_SK]
+         WHERE [BTC].[Roll Year] = @p_RY AND [AG].[Neighbourhood Code] = @p_NH  )
+     SELECT [dimFolio_SK], 
+            [LA - LOCAL AREA], 
+            [SM - SPECIFIED MUNICIPAL], 
+            [SR - SPECIFIED REGIONAL ], 
+            [SA - SERVICE AREA], 
+            [DE - DEFINED], 
+            [ID - IMPROVEMENT DISTRICT], 
+            [GS - GENERAL SERVICE], 
+            [IT - ISLANDS TRUST] into #FolioMinorTax
+     FROM
+     (
+         SELECT [dimFolio_SK], 
+                [CAT], 
+                [CODE]
+         FROM [FMT]
+     ) [C] PIVOT(MAX([CODE]) FOR [CAT] IN([LA - LOCAL AREA], 
+                                          [SM - SPECIFIED MUNICIPAL], 
+                                          [SR - SPECIFIED REGIONAL ], 
+                                          [SA - SERVICE AREA], 
+                                          [DE - DEFINED], 
+                                          [ID - IMPROVEMENT DISTRICT], 
+                                          [GS - GENERAL SERVICE], 
+                                          [IT - ISLANDS TRUST])) AS [PivotTable];
+
+
 SELECT DISTINCT 
+--[FACT].[dimFolio_SK],
        [FACT].[dimRollYear_SK], 
        [AG].[Area Code], 
        [AG].[Area Desc], 
@@ -51,25 +97,16 @@ SELECT DISTINCT
        [ED].[Electoral District Code] AS [Electoral Area Code],
        [ED].[Electoral District Desc] AS [Electoral Area Description],
 
-       CASE
-           WHEN [BTC].[Minor Tax Category Code] = 'SM'
-           THEN [TC].[BCA Code]
-       END AS [Specified Municipal Code], 
-
-
-       [FO].[Improvement District Code], 
+       [FMT].[SM - SPECIFIED MUNICIPAL] AS [Specified Municipal Code], 
+       [FMT].[ID - IMPROVEMENT DISTRICT] AS [Improvement District Code], 
        [FO].[General Service Code],
-
-       CASE
-           WHEN [BTC].[Minor Tax Category Code] = 'SA'
-           THEN [TC].[BCA Code]
-       END AS [Service Area Code], 
-
-
-       '??' AS [General Service Area Description], 
-       [FO].[Island Trust Code], 
-       [AG].[Area Code] AS [Local Area Code], 
-       [BR_FA].[Equity Type] AS [Equity Code], 
+       [FMT].[SA - SERVICE AREA] AS [Service Area Code], 
+	   [FMT].[GS - GENERAL SERVICE] AS [General Service Area Code],
+       [FMT].[IT - ISLANDS TRUST] AS [Island Trust Code], 
+       [FMT].[LA - LOCAL AREA] AS [Local Area Code],
+	    
+       [BR_FA].[Equity Type] AS [Equity Code],
+	    
        [OWNCNT].[CNT] AS [Owner Count], 
        [BR_FA].[Owner Sequence] AS [Owner Seq #], 
        [ONA].[First Name] AS [Owner FName], 
@@ -77,16 +114,14 @@ SELECT DISTINCT
        [ONA].[Last Name] AS [Owner LName], 
        [ONA].[Company Name] AS [Owner CompName],
 
-       CASE
-           WHEN [BTC].[Minor Tax Category Code] = 'DE'
-           THEN [TC].[BCA Code]
-       END AS [Defined Code], 
-       --[AG].[Region Code] AS [Specified Regional Code], 
-       --[PL].[Tenure Code] AS [Tenure Code], 
-       --[FO].[BC Transit Flag], 
-       --[ALR].[Agricultural Land Reserve Code] AS [ALR Code], 
-       --[MC].[Manual Class Code], 
-       --[FO].[Primary Actual Use Code] AS [Actual Use Code], 
+       [FMT].[DE - DEFINED] AS [Defined Code], 
+
+       [AG].[Region Code] AS [Specified Regional Code], 
+       [PL].[Tenure Code] AS [Tenure Code], 
+       [FO].[BC Transit Flag], 
+       [ALR].[Agricultural Land Reserve Code] AS [ALR Code], 
+       [MC].[Manual Class Code], 
+       [FO].[Primary Actual Use Code] AS [Actual Use Code], 
        --[OAD].[Address Line 1] AS [Owner Address 1], 
        --[OAD].[Address Line 2] AS [Owner Address 2], 
        --[OAD].[Address Line 3] AS [Owner Address 3], 
@@ -218,11 +253,16 @@ FROM [EDW].[edw].[factValuesByAssessmentCodePropertyClass] AS [FACT]
     GROUP BY [FO].[dimFolio_SK]
 ) AS [OWNCNT]
      ON [OWNCNT].[dimFolio_SK] = [FO].[dimFolio_SK]
+
+INNER JOIN #FolioMinorTax AS [FMT]
+ON [FMT].[dimFolio_SK] = [FO].[dimFolio_SK]
+
+
      LEFT OUTER JOIN [edw].[dimFolioCharacteristicTbl] AS [FC]
      ON [FC].[dimFolioCharacteristic_BK] = [FO].[Characteristic1_dimFolioCharacteristic_BK]
 WHERE [FACT].[dimRollYear_SK] = @p_RY
       AND [AG].[Neighbourhood Code] = @p_NH
-      AND [FO].[SITUS Postal Code] IS NOT NULL
+
 ORDER BY [FACT].[dimRollYear_SK], 
          [AG].[Area Code], 
          [AG].[Area Desc], 
