@@ -39,6 +39,7 @@ DECLARE @p_NH CHAR(6);
 SET @p_RY = 2017;
 SET @p_NH = '234010';
 SELECT DISTINCT
+FACT.dimFolio_SK,
        [FACT].[Roll Year], 
 	   [AG].[Area Code],
 	   [AG].[Area Desc],
@@ -56,18 +57,18 @@ SELECT DISTINCT
 --[HD].[Region Hospital District] AS [Regional Hospital District Description],
 --[FO].[Electoral Area Code],
 --'??' AS [Electoral Area Description],
---       CASE
---           WHEN [BTC].[Minor Tax Category Code] = 'SM'
---           THEN [TC].[BCA Code]
---       END AS [Specified Municipal Code],
---       [FO].[Improvement District Code], 
+       CASE
+           WHEN [BTC].[Minor Tax Category Code] = 'SM'
+           THEN [TC].[BCA Code]
+       END AS [Specified Municipal Code],
+       [FO].[Improvement District Code], 
 
 
---       [FO].[General Service Code], 
---       CASE
---           WHEN [BTC].[Minor Tax Category Code] = 'SA'
---           THEN [TC].[BCA Code]
---       END AS [Service Area Code], 
+       [FO].[General Service Code], 
+       CASE
+           WHEN [BTC].[Minor Tax Category Code] = 'SA'
+           THEN [TC].[BCA Code]
+       END AS [Service Area Code], 
 --	   '??' AS [General Service Area Description],
 --	          [FO].[Island Trust Code], 
 --       [AG].[Area Code] AS [Local Area Code], 

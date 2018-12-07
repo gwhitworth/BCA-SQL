@@ -1,5 +1,5 @@
 select TABLE_NAME, COLUMN_NAME from [INFORMATION_SCHEMA].[COLUMNS]
-WHERE COLUMN_NAME like '%dimAssessmentGeography_SK%'
+WHERE COLUMN_NAME like '%PartyType%'
 
 --select TABLE_NAME, COLUMN_NAME from [INFORMATION_SCHEMA].[COLUMNS]
 --WHERE COLUMN_NAME like '%Parcel%'

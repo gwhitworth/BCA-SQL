@@ -1,3 +1,11 @@
+--:CONNECT BCAD24,51000\EDW
+--GO
+--USE EDW
+--GO
+
+
+
+
 WITH FMT([dimFolio_SK], 
          [CAT], 
          [CODE])
@@ -7,7 +15,7 @@ WITH FMT([dimFolio_SK],
          FROM [edw].[bridgeFolioMinorTax] AS [BTC]
               INNER JOIN [edw].[dimMinorTaxCode] AS [TC]
               ON [BTC].[dimMinorTaxCode_SK] = [TC].[dimMinorTaxCode_SK]
-         WHERE [dimFolio_SK] = 4621915)
+         WHERE [dimFolio_SK] = 6963018)
      SELECT [dimFolio_SK], 
             [LA - LOCAL AREA], 
             [SM - SPECIFIED MUNICIPAL], 

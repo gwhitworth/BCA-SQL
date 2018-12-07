@@ -37,11 +37,14 @@ DECLARE @p_NH CHAR(6);
 SET @p_RY = 2017;
 SET @p_NH = '234010';
 
-DROP TABLE IF EXISTS #FolioMinorTax;
+
+--DROP TABLE IF EXISTS #FolioMinorTax;
+if object_id('tempdb..#FolioMinorTax') is null
+BEGIN
 WITH FMT([dimFolio_SK], 
               [CAT], 
               [CODE])
-     AS (SELECT [BTC].[dimFolio_SK], 
+     AS (SELECT DISTINCT [BTC].[dimFolio_SK], 
                 [BTC].[Minor Tax Category] AS [CAT], 
                 [TC].[BCA Code] AS [CODE]
          FROM [edw].[bridgeFolioMinorTax] AS [BTC]
@@ -91,7 +94,8 @@ WITH FMT([dimFolio_SK],
                                           [DE - DEFINED], 
                                           [ID - IMPROVEMENT DISTRICT], 
                                           [GS - GENERAL SERVICE], 
-                                          [IT - ISLANDS TRUST])) AS [PivotTable];
+                                          [IT - ISLANDS TRUST])) AS [PivotTable]
+END;
 
 
 SELECT DISTINCT 
@@ -119,31 +123,40 @@ SELECT DISTINCT
        [FO].[General Service Code],
        [FMT].[SA - SERVICE AREA] AS [Service Area Code], 
 	   [FMT].[GS - GENERAL SERVICE] AS [General Service Area Code],
-       [FMT].[IT - ISLANDS TRUST] AS [Island Trust Code], 
+       [FMT].[IT - ISLANDS TRUST] AS [Island Trust Code],
+	   [FO].[Island Trust Code], 
        [FMT].[LA - LOCAL AREA] AS [Local Area Code],
 	    
        [BR_FA].[Equity Type] AS [Equity Code],
 	    
        [OWNCNT].[CNT] AS [Owner Count], 
        [BR_FA].[Owner Sequence] AS [Owner Seq #], 
-       [ONA].[First Name] AS [Owner FName], 
+       [ONA].[First Name] AS [Owner First Name], 
        [ONA].[Middle Name] AS [Owner MName], 
        [ONA].[Last Name] AS [Owner LName], 
        [ONA].[Company Name] AS [Owner CompName],
+
+	   [PT].[Party Type Code] + ' - ' + [Party Type Desc] AS [Party Type],
+	   [BR_FA].[Bulk Code] AS [Bulkmail Code],
+
+	   [OAD].[Address Line 1] AS [Mailing Address Line 1], 
+       [OAD].[Address Line 2] AS [Mailing Address Line 2], 
+       [OAD].[Address Line 3] AS [Mailing Address Line 3], 
+       [OAD].[Address Line 4] AS [Mailing Address Line 4], 
+       [OAD].[Address Line 5] AS [Mailing Address Line 5],
+	   '??' AS [Mailing Address Line 6],
+
 
        [FMT].[DE - DEFINED] AS [Defined Code], 
 
        [AG].[Region Code] AS [Specified Regional Code], 
        [PL].[Tenure Code] AS [Tenure Code], 
        [FO].[BC Transit Flag], 
-       [ALR].[Agricultural Land Reserve Code] AS [ALR Code], 
+       [ALR].[Agricultural Land Reserve Code] + ' - ' + [ALR].[Agricultural Land Reserve] AS [ALR Code],
+	    
        [MC].[Manual Class Code], 
        [FO].[Primary Actual Use Code] AS [Actual Use Code], 
-       --[OAD].[Address Line 1] AS [Owner Address 1], 
-       --[OAD].[Address Line 2] AS [Owner Address 2], 
-       --[OAD].[Address Line 3] AS [Owner Address 3], 
-       --[OAD].[Address Line 4] AS [Owner Address 4], 
-       --[OAD].[Address Line 5] AS [Owner Address 5], 
+ 
        [FO].[SITUS Building/Unit Number] AS [Situs Unit No], 
        [FO].[SITUS Address Number Prefix], 
        [FO].[SITUS Street Number], 
@@ -175,7 +188,7 @@ SELECT DISTINCT
 --END AS [Exempt Tax Code Improvement], 
 --[PC].[Property Sub Class Desc] AS [Property Sub-Class (Improvement)], 
 --[BR_FA].[Bulk Code], 
---[BR_FA].[Party Type], 
+
 --'??' AS [Additional School Tax Flag], 
 --[Actual Land Value], 
 --[Actual Building Value], 
@@ -274,6 +287,8 @@ FROM [EDW].[edw].[factValuesByAssessmentCodePropertyClass] AS [FACT]
 INNER JOIN #FolioMinorTax AS [FMT]
 ON [FMT].[dimFolio_SK] = [FO].[dimFolio_SK]
 
+INNER JOIN [edw].[dimPartyType] AS [PT]
+ON [BR_FA].[Party Type] = [PT].[Party Type Code]
 
      LEFT OUTER JOIN [edw].[dimFolioCharacteristicTbl] AS [FC]
      ON [FC].[dimFolioCharacteristic_BK] = [FO].[Characteristic1_dimFolioCharacteristic_BK]
