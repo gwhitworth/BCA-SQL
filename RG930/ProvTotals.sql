@@ -23,7 +23,7 @@ FROM [edw].[FactAllAssessedAmounts] AS [FA]
                                             AND [FO].[Folio Status Code] = '01'
      --AND [BC Transit Flag] = 'Y'
      INNER JOIN [edw].[dimRegionalDistrict] AS [RD] ON [RD].[dimRegionalDistrict_SK] = [FO].[dimRegionalDistrict_SK]
-     LEFT OUTER JOIN [edw].[dimElectoralDistrict] AS [ED] ON [ED].dimJurisdiction_SK = [AG].dimJurisdiction_SK
+     LEFT OUTER JOIN [edw].[bridgeJurisdictionRegionalDistrictElectoralDistrict] AS [ED] ON [ED].dimJurisdiction_SK = [AG].dimJurisdiction_SK
      LEFT OUTER JOIN
 (
     SELECT [FAV].dimFolio_SK, 

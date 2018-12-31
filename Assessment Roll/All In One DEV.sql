@@ -39,63 +39,63 @@ SET @p_NH = '234010';
 
 
 --DROP TABLE IF EXISTS #FolioMinorTax;
-if object_id('tempdb..#FolioMinorTax') is null
-BEGIN
-WITH FMT([dimFolio_SK], 
-              [CAT], 
-              [CODE])
-     AS (SELECT DISTINCT [BTC].[dimFolio_SK], 
-                [BTC].[Minor Tax Category] AS [CAT], 
-                [TC].[BCA Code] AS [CODE]
-         FROM [edw].[bridgeFolioMinorTax] AS [BTC]
-              INNER JOIN [edw].[dimMinorTaxCode] AS [TC]
-              ON [BTC].[dimMinorTaxCode_SK] = [TC].[dimMinorTaxCode_SK]
-			  INNER JOIN [edw].[factValuesByAssessmentCodePropertyClass] AS [FACT]
-			  ON [FACT].dimFolio_SK = [BTC].dimFolio_SK
-			  INNER JOIN [edw].[dimAssessmentGeography] AS [AG]
-				ON [FACT].[dimAssessmentGeography_SK] = [AG].[dimAssessmentGeography_SK]
-         WHERE [BTC].[Roll Year] = @p_RY AND [AG].[Neighbourhood Code] = @p_NH  )
-     SELECT [dimFolio_SK], 
-            [LA - LOCAL AREA], 
-            [SM - SPECIFIED MUNICIPAL], 
-            [SR - SPECIFIED REGIONAL ], 
-            [SA - SERVICE AREA], 
-            [DE - DEFINED], 
-            [ID - IMPROVEMENT DISTRICT], 
-            [GS - GENERAL SERVICE], 
-            [IT - ISLANDS TRUST] into #FolioMinorTax
-     FROM
-     (
-         SELECT [dimFolio_SK], 
-                [CAT], 
-                (
-             SELECT DISTINCT 
-                    [smcList] = STUFF(
-             (
-                 SELECT ','+[TC].[BCA Code]
-                 FROM [EDW].[edw].[bridgeFolioMinorTax] AS [id2]
-                      INNER JOIN [edw].[dimMinorTaxCode] AS [TC]
-                      ON [id2].[dimMinorTaxCode_SK] = [TC].[dimMinorTaxCode_SK]
-                 WHERE [id1].[dimFolio_SK] = [id2].[dimFolio_SK]
-                       AND [id1].[Minor Tax Category Code] = [id2].[Minor Tax Category Code]
-                 GROUP BY [TC].[BCA Code] FOR XML PATH(''), TYPE
-             ).value('.', 'varchar(max)'), 1, 1, '')
-             FROM [EDW].[edw].[bridgeFolioMinorTax] AS [id1]
-                  INNER JOIN [edw].[dimMinorTaxCode] AS [TC]
-                  ON [id1].[dimMinorTaxCode_SK] = [TC].[dimMinorTaxCode_SK]
-             WHERE [dimFolio_SK] = [FMT].[dimFolio_SK]
-                   AND [id1].[Minor Tax Category] = [FMT].[CAT]
-         ) AS [CODE]
-         FROM [FMT]
-     ) [C] PIVOT(MAX([CODE]) FOR [CAT] IN([LA - LOCAL AREA], 
-                                          [SM - SPECIFIED MUNICIPAL], 
-                                          [SR - SPECIFIED REGIONAL ], 
-                                          [SA - SERVICE AREA], 
-                                          [DE - DEFINED], 
-                                          [ID - IMPROVEMENT DISTRICT], 
-                                          [GS - GENERAL SERVICE], 
-                                          [IT - ISLANDS TRUST])) AS [PivotTable]
-END;
+--if object_id('tempdb..#FolioMinorTax') is null
+--BEGIN
+--WITH FMT([dimFolio_SK], 
+--              [CAT], 
+--              [CODE])
+--     AS (SELECT DISTINCT [BTC].[dimFolio_SK], 
+--                [BTC].[Minor Tax Category] AS [CAT], 
+--                [TC].[BCA Code] AS [CODE]
+--         FROM [edw].[bridgeFolioMinorTax] AS [BTC]
+--              INNER JOIN [edw].[dimMinorTaxCode] AS [TC]
+--              ON [BTC].[dimMinorTaxCode_SK] = [TC].[dimMinorTaxCode_SK]
+--			  INNER JOIN [edw].[factValuesByAssessmentCodePropertyClass] AS [FACT]
+--			  ON [FACT].dimFolio_SK = [BTC].dimFolio_SK
+--			  INNER JOIN [edw].[dimAssessmentGeography] AS [AG]
+--				ON [FACT].[dimAssessmentGeography_SK] = [AG].[dimAssessmentGeography_SK]
+--         WHERE [BTC].[Roll Year] = @p_RY AND [AG].[Neighbourhood Code] = @p_NH  )
+--     SELECT [dimFolio_SK], 
+--            [LA - LOCAL AREA], 
+--            [SM - SPECIFIED MUNICIPAL], 
+--            [SR - SPECIFIED REGIONAL ], 
+--            [SA - SERVICE AREA], 
+--            [DE - DEFINED], 
+--            [ID - IMPROVEMENT DISTRICT], 
+--            [GS - GENERAL SERVICE], 
+--            [IT - ISLANDS TRUST] into #FolioMinorTax
+--     FROM
+--     (
+--         SELECT [dimFolio_SK], 
+--                [CAT], 
+--                (
+--             SELECT DISTINCT 
+--                    [smcList] = STUFF(
+--             (
+--                 SELECT ','+[TC].[BCA Code]
+--                 FROM [EDW].[edw].[bridgeFolioMinorTax] AS [id2]
+--                      INNER JOIN [edw].[dimMinorTaxCode] AS [TC]
+--                      ON [id2].[dimMinorTaxCode_SK] = [TC].[dimMinorTaxCode_SK]
+--                 WHERE [id1].[dimFolio_SK] = [id2].[dimFolio_SK]
+--                       AND [id1].[Minor Tax Category Code] = [id2].[Minor Tax Category Code]
+--                 GROUP BY [TC].[BCA Code] FOR XML PATH(''), TYPE
+--             ).value('.', 'varchar(max)'), 1, 1, '')
+--             FROM [EDW].[edw].[bridgeFolioMinorTax] AS [id1]
+--                  INNER JOIN [edw].[dimMinorTaxCode] AS [TC]
+--                  ON [id1].[dimMinorTaxCode_SK] = [TC].[dimMinorTaxCode_SK]
+--             WHERE [dimFolio_SK] = [FMT].[dimFolio_SK]
+--                   AND [id1].[Minor Tax Category] = [FMT].[CAT]
+--         ) AS [CODE]
+--         FROM [FMT]
+--     ) [C] PIVOT(MAX([CODE]) FOR [CAT] IN([LA - LOCAL AREA], 
+--                                          [SM - SPECIFIED MUNICIPAL], 
+--                                          [SR - SPECIFIED REGIONAL ], 
+--                                          [SA - SERVICE AREA], 
+--                                          [DE - DEFINED], 
+--                                          [ID - IMPROVEMENT DISTRICT], 
+--                                          [GS - GENERAL SERVICE], 
+--                                          [IT - ISLANDS TRUST])) AS [PivotTable]
+--END;
 
 
 SELECT DISTINCT 
@@ -118,16 +118,16 @@ SELECT DISTINCT
        [ED].[Electoral District Code] AS [Electoral Area Code],
        [ED].[Electoral District Desc] AS [Electoral Area Description],
 
-       [FMT].[SM - SPECIFIED MUNICIPAL] AS [Specified Municipal Code], 
-       [FMT].[ID - IMPROVEMENT DISTRICT] AS [Improvement District Code], 
+       [FMT].[SM - Specified Municipal BCA Codes] AS [Specified Municipal Code], 
+       [FMT].[ID - Improvement District BCA Codes] AS [Improvement District Code], 
        [FO].[General Service Code],
-       [FMT].[SA - SERVICE AREA] AS [Service Area Code], 
-	   [FMT].[GS - GENERAL SERVICE] AS [General Service Area Code],
-       [FMT].[IT - ISLANDS TRUST] AS [Island Trust Code],
+       [FMT].[SA - Service Area BCA Codes] AS [Service Area Code], 
+	   [FMT].[GS - General Service BCA Codes] AS [General Service Area Code],
+       [FMT].[IT - Islands Trust BCA Codes] AS [Island Trust Code],
 	   [FO].[Island Trust Code], 
-       [FMT].[LA - LOCAL AREA] AS [Local Area Code],
+       [FMT].[LA - Local Area BCA Codes] AS [Local Area Code],
 	    
-       [BR_FA].[Equity Type] AS [Equity Code],
+       [BR_FA].[Equity Type Code] AS [Equity Code],
 	    
        [OWNCNT].[CNT] AS [Owner Count], 
        [BR_FA].[Owner Sequence] AS [Owner Seq #], 
@@ -147,7 +147,7 @@ SELECT DISTINCT
 	   '??' AS [Mailing Address Line 6],
 
 
-       [FMT].[DE - DEFINED] AS [Defined Code], 
+       [FMT].[DE - Defined BCA Codes] AS [Defined Code], 
 
        [AG].[Region Code] AS [Specified Regional Code], 
        [PL].[Tenure Code] AS [Tenure Code], 
@@ -284,11 +284,15 @@ FROM [EDW].[edw].[factValuesByAssessmentCodePropertyClass] AS [FACT]
 ) AS [OWNCNT]
      ON [OWNCNT].[dimFolio_SK] = [FO].[dimFolio_SK]
 
-INNER JOIN #FolioMinorTax AS [FMT]
+--INNER JOIN #FolioMinorTax AS [FMT]
+--ON [FMT].[dimFolio_SK] = [FO].[dimFolio_SK]
+
+INNER JOIN [edw].[dimBCACodesDelimitedByCategory] AS [FMT]
 ON [FMT].[dimFolio_SK] = [FO].[dimFolio_SK]
 
+
 INNER JOIN [edw].[dimPartyType] AS [PT]
-ON [BR_FA].[Party Type] = [PT].[Party Type Code]
+ON [BR_FA].[Party Type Code] = [PT].[Party Type Code]
 
      LEFT OUTER JOIN [edw].[dimFolioCharacteristicTbl] AS [FC]
      ON [FC].[dimFolioCharacteristic_BK] = [FO].[Characteristic1_dimFolioCharacteristic_BK]
