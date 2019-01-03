@@ -1,3 +1,24 @@
+IF OBJECT_ID('tempdb..#PIDLST') IS NOT NULL DROP TABLE #PIDLST
+GO
+SELECT * INTO #PIDLST FROM
+(SELECT top 200 [A].[Folio Number], 
+(
+    SELECT [dbo].[FNC_FORMAT_Property_ID_List]
+    (STUFF(
+    (
+        SELECT DISTINCT '; '+ [B].[PID]
+        FROM [edw].[dimParcel] AS [B]
+                INNER JOIN [edw].[bridgeParcelFolio] AS [C]
+                ON [B].[dimParcel_SK] = [C].[dimParcel_SK]
+        WHERE [C].[Folio Number] = [A].[Folio Number]
+        ORDER BY '; '+ [B].[PID] FOR XML PATH('')
+    ), 1, 1, '')
+    )
+) AS [LST]
+FROM [edw].[bridgeParcelFolio] AS [A]
+WHERE [A].[Roll Year] = 2017
+GROUP BY [A].[Folio Number]) AS JUNK
+GO
 SELECT top 200 [edw].[dimProperty].[Roll Year], 
        [edw].[dimProperty].[Area Code], 
        [edw].[dimProperty].[Jurisdiction Code], 
@@ -13,11 +34,11 @@ SELECT top 200 [edw].[dimProperty].[Roll Year],
        [edw].[dimElectoralDistrict].[Electoral District Code], 
        [edw].[dimProperty].[Primary Actual Use Code], 
        [edw].[factValuesByAssessmentCodePropertyClass].[Property Class Code], 
-       [edw].[dimProperty].[Property ID], 
-       [PID], 
-       [edw].[dimParcel].[PID Display], 
+       --[edw].[dimProperty].[Property ID], 
+       --[PID], 
+       --[edw].[dimParcel].[PID Display], 
        [edw].[dimParcel].[Legal Text], 
-       [edw].[dimParcel].[Legal Description], 
+       --[edw].[dimParcel].[Legal Description], 
        [edw].[dimProperty].[SITUS Postal Code], 
        [edw].[dimPropertyOwnerAddresses].[Owner 1 Equity Type Code], 
        [edw].[dimPropertyOwnerAddresses].[Owner 1 Party Type Desc], 
@@ -25,7 +46,7 @@ SELECT top 200 [edw].[dimProperty].[Roll Year],
        [edw].[dimPropertyOwnerAddresses].[Owner 1 Address], 
        [edw].[dimRegionalHospitalDistrict].[Region Hospital District Code], 
        [edw].[bridgeJurisdictionRegionalDistrict].[Regional District Code], 
-       --[PID_LST].[LST], 
+       [PID_LST].[LST], 
        Sum([edw].[factValuesByAssessmentCodePropertyClass].[Actual Land Value]) AS [Actual Land Value], 
        Sum([edw].[factValuesByAssessmentCodePropertyClass].[Actual Building Value]) AS [Actual Building Value], 
        Sum([edw].[factValuesByAssessmentCodePropertyClass].[Actual Total Value]) AS [Actual Total Value], 
@@ -59,27 +80,8 @@ FROM [edw].[dimProperty]
      ON [edw].[factValuesByAssessmentCodePropertyClass].[dimRegionalHospitalDistrict_SK] = [edw].[dimRegionalHospitalDistrict].[dimRegionalHospitalDistrict_SK]
      INNER JOIN [edw].[bridgeJurisdictionRegionalDistrict]
      ON [edw].[dimProperty].[dimJurisdiction_SK] = [edw].[bridgeJurisdictionRegionalDistrict].[dimJurisdiction_SK]
-     INNER JOIN
-(
-    SELECT [A].[Folio Number], 
-    (
-        SELECT top 200 [dbo].[FNC_FORMAT_Property_ID_List]
-        (STUFF(
-        (
-            SELECT DISTINCT '; '+ [B].[PID]
-            FROM [edw].[dimParcel] AS [B]
-                 INNER JOIN [edw].[bridgeParcelFolio] AS [C]
-                 ON [B].[dimParcel_SK] = [C].[dimParcel_SK]
-            WHERE [C].[Folio Number] = [A].[Folio Number]
-            ORDER BY '; '+ [B].[PID] FOR XML PATH('')
-        ), 1, 1, '')
-        )
-    ) AS [LST]
-    FROM [edw].[bridgeParcelFolio] AS [A]
-    WHERE [A].[Roll Year] = 2017
-    GROUP BY [A].[Folio Number]
-) AS [PID_LST]
-     ON [edw].[bridgeParcelFolio].[Folio Number] = [PID_LST].[Folio Number]
+	 INNER JOIN #PIDLST AS [PID_LST] ON [edw].[bridgeParcelFolio].[Folio Number] = [PID_LST].[Folio Number]
+
 WHERE [edw].[dimProperty].[Roll Year] = 2017
 GROUP BY [edw].[dimProperty].[Roll Year], 
        [edw].[dimProperty].[Area Code], 
@@ -96,11 +98,11 @@ GROUP BY [edw].[dimProperty].[Roll Year],
        [edw].[dimElectoralDistrict].[Electoral District Code], 
        [edw].[dimProperty].[Primary Actual Use Code], 
        [edw].[factValuesByAssessmentCodePropertyClass].[Property Class Code], 
-       [edw].[dimProperty].[Property ID], 
-       [PID], 
-       [edw].[dimParcel].[PID Display], 
+       --[edw].[dimProperty].[Property ID], 
+       --[PID], 
+       --[edw].[dimParcel].[PID Display], 
        [edw].[dimParcel].[Legal Text], 
-       [edw].[dimParcel].[Legal Description], 
+       --[edw].[dimParcel].[Legal Description], 
        [edw].[dimProperty].[SITUS Postal Code], 
        [edw].[dimPropertyOwnerAddresses].[Owner 1 Equity Type Code], 
        [edw].[dimPropertyOwnerAddresses].[Owner 1 Party Type Desc], 
@@ -108,5 +110,4 @@ GROUP BY [edw].[dimProperty].[Roll Year],
        [edw].[dimPropertyOwnerAddresses].[Owner 1 Address], 
        [edw].[dimRegionalHospitalDistrict].[Region Hospital District Code], 
        [edw].[bridgeJurisdictionRegionalDistrict].[Regional District Code]
-	   --, 
-       --[PID_LST].[LST];
+	   , [PID_LST].[LST];

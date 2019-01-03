@@ -16,7 +16,6 @@ SELECT [edw].[dimProperty].[Roll Year],
                  [edw].[factValuesByAssessmentCodePropertyClass].[Actual Land Value], 
                  [edw].[factValuesByAssessmentCodePropertyClass].[Actual Building Value], 
                  [edw].[factValuesByAssessmentCodePropertyClass].[Actual Total Value], 
-                 [edw].[dimProperty].[Property ID], [PID],
                  [edw].[dimParcel].[PID Display], 
                  [edw].[dimParcel].[Legal Text], 
                  [edw].[dimParcel].[Legal Description], 
@@ -35,8 +34,9 @@ SELECT [edw].[dimProperty].[Roll Year],
                  [edw].[factValuesByAssessmentCodePropertyClass].[Net Other Total Value], 
                  [edw].[factValuesByAssessmentCodePropertyClass].[Net School Land Value], 
                  [edw].[factValuesByAssessmentCodePropertyClass].[Net School Building Value], 
-                 [edw].[factValuesByAssessmentCodePropertyClass].[Net School Total Value],
-				 [PID_LST].LST
+                 [edw].[factValuesByAssessmentCodePropertyClass].[Net School Total Value]
+				 --,
+				 --[PID_LST].LST
 FROM [edw].[dimProperty]
      INNER JOIN [edw].[dimSchoolDistrict]
      ON [edw].[dimProperty].[dimSchoolDistrict_SK] = [edw].[dimSchoolDistrict].[dimSchoolDistrict_SK]
@@ -60,15 +60,15 @@ FROM [edw].[dimProperty]
      INNER JOIN [edw].[bridgeJurisdictionRegionalDistrict]
      ON [edw].[dimProperty].[dimJurisdiction_SK] = [edw].[bridgeJurisdictionRegionalDistrict].[dimJurisdiction_SK]
 
-	 INNER JOIN (SELECT A.[dimParcel_SK],
-		(SELECT [dbo].[FNC_FORMAT_Property_ID_List](STUFF((SELECT '; ' + CAST(B.[PID] AS VARCHAR(50))
-											FROM [edw].[dimParcel] AS B
-											WHERE B.[dimParcel_SK] = A.[dimParcel_SK]
-											ORDER BY B.[PID]
-											FOR XML PATH('')), 1, 1, ''))) AS [LST]
-	FROM [edw].[dimParcel] AS A
-	WHERE A.[Roll Year] = 2017
-	GROUP BY A.[dimParcel_SK]) as [PID_LST]
-     ON [edw].[dimParcel].[dimParcel_SK] = [PID_LST].[dimParcel_SK]
+	---- INNER JOIN (SELECT A.[dimParcel_SK],
+	----	(SELECT [dbo].[FNC_FORMAT_Property_ID_List](STUFF((SELECT '; ' + CAST(B.[PID] AS VARCHAR(50))
+	----										FROM [edw].[dimParcel] AS B
+	----										WHERE B.[dimParcel_SK] = A.[dimParcel_SK]
+	----										ORDER BY B.[PID]
+	----										FOR XML PATH('')), 1, 1, ''))) AS [LST]
+	----FROM [edw].[dimParcel] AS A
+	----WHERE A.[Roll Year] = 2017
+	----GROUP BY A.[dimParcel_SK]) as [PID_LST]
+ ----    ON [edw].[dimParcel].[dimParcel_SK] = [PID_LST].[dimParcel_SK]
 
 WHERE [edw].[dimProperty].[Roll Year] = 2017;
