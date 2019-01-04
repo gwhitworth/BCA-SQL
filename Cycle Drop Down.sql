@@ -14,14 +14,9 @@ SELECT
 FROM  [edw].[dimRollCycle]
 
 WHERE [Roll Year] = @p_RY
-	  AND [Cycle Number] = (SELECT Max(CAST([Cycle Number] AS int))
-								FROM [edw].[dimRollCycle]
-								WHERE [Roll Year] = @p_RY
-								      AND CAST([Cycle Number] AS int) <= 12)
 
 	  OR ([Cycle Number] IN (0,-1) AND [Roll Year] = @p_RY)
-ORDER BY [Cycle Number Sort] DESC
-
+ORDER BY [Roll Entry Run Date] DESC
 
 
 --SELECT Max(CAST([Cycle Number] AS int))
