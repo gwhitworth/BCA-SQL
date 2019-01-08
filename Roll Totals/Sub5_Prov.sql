@@ -16,7 +16,8 @@ SELECT IIF([PC].[Property Sub Class Code] = '0202', 999, [PC].[RowSortOrder]) AS
        END AS [RESNONRES], 
        ISNULL([PC].[Property Sub Class Desc], [PC].[Property Class Desc]) AS [Property Class], 
        COUNT(DISTINCT [FA].[dimFolio_SK]) AS [Folio_Count], 
-       COUNT([OCRCNT]) AS [Occurrences], 
+       --COUNT([OCRCNT]) AS [Occurrences], 
+	   0 AS [Occurrences], 
        SUM([FA].[Actual Land Value]) AS [Actual Land Value], 
        SUM([FA].[Actual Building Value]) AS [Actual Building Value], 
        SUM([Actual - Total]) AS [Actual - Total], 
@@ -70,21 +71,25 @@ FROM
             AND [FO].[Folio Status Code] = '01'
          INNER JOIN [edw].[dimAssessmentGeography] AS [AG]
          ON [AG].[dimAssessmentGeography_SK] = [FA].[dimAssessmentGeography_SK]
+         INNER JOIN [edw].[dimJurisdiction] AS [JR]
+         ON [AG].[dimJurisdiction_SK] = [JR].[dimJurisdiction_SK]
+         INNER JOIN [edw].[dimJurisdictionType] AS [JT]
+         ON [JR].[dimJurisdictionType_SK] = [JT].[dimJurisdictionType_SK]
     WHERE [FA].[Roll Year] = @p_RY
           AND [Cycle Number] = @p_CN
-          AND [AG].[Jurisdiction Code] > '199'
+          AND [JT].[Jurisdiction Type Code] IN('C', 'D', 'T', 'V', 'R')
     GROUP BY [FA].[dimFolio_SK], 
              [dimPropertyClass_SK]
 ) AS [FA]
-INNER JOIN
-(
-    SELECT DISTINCT 
-           [dimFolio_SK], 
-           [Property Class Occurrence] AS [OCRCNT]
-    FROM [edw].[FactPropertyClassOccurrenceCount]
-    WHERE [Assessment Code] = '01'
-) AS [OC]
-ON [FA].[dimFolio_SK] = [OC].[dimFolio_SK]
+--INNER JOIN
+--(
+--    SELECT DISTINCT 
+--           [dimFolio_SK], 
+--           [Property Class Occurrence] AS [OCRCNT]
+--    FROM [edw].[FactPropertyClassOccurrenceCount]
+--    WHERE [Assessment Code] = '01'
+--) AS [OC]
+--ON [FA].[dimFolio_SK] = [OC].[dimFolio_SK]
 INNER JOIN [edw].[dimPropertyClass] AS [PC]
 ON [FA].[dimPropertyClass_SK] = [PC].[dimPropertyClass_SK]
 INNER JOIN [edw].[dimFolio] AS [FO]

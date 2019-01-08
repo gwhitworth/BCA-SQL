@@ -21,7 +21,7 @@ FROM [edw].[FactTotalAllAmounts] AS [FA]
      ON [JR].[dimJurisdictionType_SK] = [JT].[dimJurisdictionType_SK]
 WHERE [FA].[Roll Year] = @p_RY
       AND [Cycle Number] = @p_CN
-      AND [dimPropertyClass_SK] = 47
+      AND [dimPropertyClass_SK] = 48
       AND [JT].[Jurisdiction Type Code] IN('C', 'D', 'T', 'V', 'R')
 GROUP BY [FA].[dimFolio_SK], 
          [dimPropertyClass_SK];
