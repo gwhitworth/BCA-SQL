@@ -23,7 +23,7 @@ SELECT [FA].[Roll Year],
        END AS [RESNONRES], 
        ISNULL([PC].[Property Sub Class Desc], [PC].[Property Class Desc]) AS [Property Class], 
        COUNT([FA].[dimFolio_SK]) AS [Folio_Count], 
-       SUM([OCRCNT]) AS [Occurrences], 
+       COUNT([OCRCNT]) AS [Occurrences], 
        SUM([FA].[Actual Land Value]) AS [Actual Land Value], 
        SUM([FA].[Actual Building Value]) AS [Actual Building Value], 
        SUM([Actual - Total]) AS [Actual - Total], 
@@ -51,7 +51,7 @@ FROM
            [dimPropertyClass_SK], 
            [FA].[Roll Year], 
            [Cycle Number],
-		   COUNT([FA].[dimFolio_SK]) AS  [FolioCnt],
+		   COUNT(DISTINCT [FA].[dimFolio_SK]) AS  [FolioCnt],
            SUM([Actual Land Value]) AS [Actual Land Value], 
            SUM([Actual Building Value]) AS [Actual Building Value], 
            SUM([Actual Land Value]) + SUM([Actual Building Value]) AS [Actual - Total], 
@@ -93,6 +93,7 @@ INNER JOIN
            [dimFolio_SK], 
            [Property Class Occurrence] AS [OCRCNT]
     FROM [edw].[FactPropertyClassOccurrenceCount]
+	WHERE [Assessment Code] = '01'
 ) AS [OC]
 ON [FA].[dimFolio_SK] = [OC].[dimFolio_SK]
 INNER JOIN [edw].[dimPropertyClass] AS [PC]

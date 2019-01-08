@@ -1,14 +1,11 @@
-DECLARE @p_RY INT;
-DECLARE @p_CN INT;
-DECLARE @p_JR CHAR(3);
+DECLARE @p_RY [INT];
+DECLARE @p_CN [INT];
+DECLARE @p_AR CHAR(2);
 SET @p_RY = 2017;
 SET @p_CN = -1;
-SET @p_JR = '213';
+SET @p_AR = '01';
 SELECT [FA].[Roll Year], 
        [AG].[Area], 
-       [AG].[Jurisdiction Code], 
-       [AG].[Jurisdiction Code]+' '+[AG].[Jurisdiction Type Desc]+' of '+[AG].[Jurisdiction Desc] AS [Jurisdiction Desc], 
-       [FO].[School District Code], 
        IIF([PC].[Property Sub Class Code] = '0202', 999, [PC].[RowSortOrder]) AS [RowSortOrder], 
        [PC].[Property Class Code],
        CASE
@@ -78,7 +75,7 @@ FROM
          ON [FO].[dimAssessmentGeography_SK] = [AG].[dimAssessmentGeography_SK]
     WHERE [FA].[Roll Year] = @p_RY
           AND [Cycle Number] = @p_CN
-          AND [AG].[Jurisdiction Code] = @p_JR
+          AND [AG].[Area Code] = @p_AR
     GROUP BY [FA].[dimFolio_SK], 
              [dimPropertyClass_SK], 
              [FA].[Roll Year], 
@@ -102,12 +99,9 @@ INNER JOIN [edw].[dimAssessmentGeography] AS [AG]
 ON [FO].[dimAssessmentGeography_SK] = [AG].[dimAssessmentGeography_SK]
 WHERE [FA].[Roll Year] = @p_RY
       AND [FA].[Cycle Number] = @p_CN
-      AND [AG].[Jurisdiction Code] = @p_JR
+      AND [AG].[Area Code] = @p_AR
 GROUP BY [FA].[Roll Year], 
          [AG].[Area], 
-         [AG].[Jurisdiction Code], 
-         [AG].[Jurisdiction Code]+' '+[AG].[Jurisdiction Type Desc]+' of '+[AG].[Jurisdiction Desc], 
-         [FO].[School District Code], 
          IIF([PC].[Property Sub Class Code] = '0202', 999, [PC].[RowSortOrder]), 
          [PC].[Property Class Code],
          CASE
@@ -119,7 +113,5 @@ GROUP BY [FA].[Roll Year],
          ISNULL([PC].[Property Sub Class Desc], [PC].[Property Class Desc])
 ORDER BY [FA].[Roll Year], 
          [AG].[Area], 
-         [AG].[Jurisdiction Code], 
-         [FO].[School District Code], 
          [RESNONRES] DESC, 
          [RowSortOrder];

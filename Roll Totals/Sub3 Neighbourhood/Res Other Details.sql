@@ -24,11 +24,11 @@ SELECT [FA].[Roll Year],
        ISNULL([PC].[Property Sub Class Desc], [PC].[Property Class Desc]) AS [Property Class],
 	   [PC].[Property Sub Class Code]
 	   ,[FO].[dimFolio_SK],
-		[FA].[Current Cycle Flag]
-	  ,[FA].[Exempt Tax Code],
-	  [FA].[dimRollType_BK]
-    --   [FA].[Actual Land Value], 
-    --   [FA].[Actual Building Value]
+		[FA].[Current Cycle Flag],
+	  --,[FA].[Exempt Tax Code],
+	  --[FA].[dimRollType_BK]
+       [FA].[Actual Land Value], 
+       [FA].[Actual Building Value]
 	   --[Net_Gen_Land], 
     --   [Net_Gen_Improvements]
 	   --,
@@ -60,7 +60,7 @@ SELECT [FA].[Roll Year],
        --SUM([Exempt_School_Improvements]) AS [Exempt_School_Improvements], 
        --SUM([Net_School_Land]) AS [Net_School_Land], 
        --SUM([Net_School_Improvements]) AS [Net_School_Improvements]
-FROM [edw].[FactActualAmounts] AS [FA]
+FROM [edw].[FactTotalAllAmounts] AS [FA]
      INNER JOIN
 (
     SELECT DISTINCT 
@@ -110,5 +110,5 @@ WHERE [FA].[Roll Year] = @p_RY
       AND [AG].[Neighbourhood Code] = @p_NH
 	  AND [PC].[Property Sub Class Code] = '0105'
 	  --AND [FA].[Current Cycle Flag] = 'Yes'
-	  AND [FA].[Exempt Tax Code] = '00'
+	  --AND [FA].[Exempt Tax Code] = '00'
 ORDER BY [FO].[dimFolio_SK]
