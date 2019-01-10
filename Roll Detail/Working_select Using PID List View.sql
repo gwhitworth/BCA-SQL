@@ -1,24 +1,9 @@
-----IF OBJECT_ID('tempdb..#PIDLST') IS NOT NULL DROP TABLE #PIDLST
-----GO
-----SELECT * INTO #PIDLST FROM
-----(SELECT top 200 [A].[Folio Number], 
-----(
-----    SELECT [dbo].[FNC_FORMAT_Property_ID_List]
-----    (STUFF(
-----    (
-----        SELECT DISTINCT '; '+ [B].[PID]
-----        FROM [edw].[dimParcel] AS [B]
-----                INNER JOIN [edw].[bridgeParcelFolio] AS [C]
-----                ON [B].[dimParcel_SK] = [C].[dimParcel_SK]
-----        WHERE [C].[Folio Number] = [A].[Folio Number]
-----        ORDER BY '; '+ [B].[PID] FOR XML PATH('')
-----    ), 1, 1, '')
-----    )
-----) AS [LST]
-----FROM [edw].[bridgeParcelFolio] AS [A]
-----WHERE [A].[Roll Year] = 2017
-----GROUP BY [A].[Folio Number]) AS JUNK
-----GO
+DECLARE @p_RY INT;;
+DECLARE @p_CN INT
+DECLARE @p_JR CHAR(3);
+SET @p_RY = 2017;
+SET @p_CN = -1;
+SET @p_JR = '213';
 SELECT [edw].[dimProperty].[Roll Year], 
        [edw].[dimProperty].[Area Code], 
        [edw].[dimProperty].[Jurisdiction Code], 
@@ -46,7 +31,8 @@ SELECT [edw].[dimProperty].[Roll Year],
        [edw].[dimPropertyOwnerAddresses].[Owner 1 Address], 
        [edw].[dimRegionalHospitalDistrict].[Region Hospital District Code], 
        [edw].[bridgeJurisdictionRegionalDistrict].[Regional District Code], 
-       [PID_LST].[LST], 
+       [PID_LST].[LST] AS [PID LIST], 
+	   [PCode_LST].[LST] AS [Priperty Class List],
        SUM([edw].[factValuesByAssessmentCodePropertyClass].[Actual Land Value]) AS [Actual Land Value], 
        SUM([edw].[factValuesByAssessmentCodePropertyClass].[Actual Building Value]) AS [Actual Building Value], 
        SUM([edw].[factValuesByAssessmentCodePropertyClass].[Actual Total Value]) AS [Actual Total Value], 
@@ -80,9 +66,25 @@ FROM [edw].[dimProperty]
      ON [edw].[factValuesByAssessmentCodePropertyClass].[dimRegionalHospitalDistrict_SK] = [edw].[dimRegionalHospitalDistrict].[dimRegionalHospitalDistrict_SK]
      INNER JOIN [edw].[bridgeJurisdictionRegionalDistrict]
      ON [edw].[dimProperty].[dimJurisdiction_SK] = [edw].[bridgeJurisdictionRegionalDistrict].[dimJurisdiction_SK]
-     INNER JOIN (SELECT * FROM [dbo].[GWTEST] WHERE [dimRollYear_SK] = 2017) AS [PID_LST]
+     INNER JOIN [edw].[dimAssessmentGeography] AS [AG]
+     ON [edw].[dimProperty].[dimAssessmentGeography_SK] = [AG].[dimAssessmentGeography_SK]
+     INNER JOIN
+(
+    SELECT *
+    FROM [edw].[dimPidList]
+    WHERE [dimRollYear_SK] = @p_RY
+) AS [PID_LST]
      ON [edw].[factValuesByAssessmentCodePropertyClass].[dimFolio_SK] = [PID_LST].[dimFolio_SK]
-WHERE [edw].[dimProperty].[Roll Year] = 2017
+INNER JOIN
+(
+    SELECT *
+    FROM [edw].[dimPCodeList]
+    WHERE [dimRollYear_SK] = @p_RY
+) AS [PCode_LST]
+     ON [edw].[factValuesByAssessmentCodePropertyClass].[dimFolio_SK] = [PCode_LST].[dimFolio_SK]
+
+WHERE [edw].[dimProperty].[Roll Year] = @p_RY
+      AND [AG].[Jurisdiction Code] = @p_JR
 GROUP BY [edw].[dimProperty].[Roll Year], 
          [edw].[dimProperty].[Area Code], 
          [edw].[dimProperty].[Jurisdiction Code], 
@@ -110,4 +112,5 @@ GROUP BY [edw].[dimProperty].[Roll Year],
          [edw].[dimPropertyOwnerAddresses].[Owner 1 Address], 
          [edw].[dimRegionalHospitalDistrict].[Region Hospital District Code], 
          [edw].[bridgeJurisdictionRegionalDistrict].[Regional District Code], 
-         [PID_LST].[LST];
+         [PID_LST].[LST],
+		 [PCode_LST].[LST];

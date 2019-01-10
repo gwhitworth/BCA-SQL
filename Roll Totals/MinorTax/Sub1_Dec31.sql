@@ -56,13 +56,31 @@ FROM [edw].[FactActualAmounts] AS [FA]
 (
     SELECT DISTINCT 
            [dimFolio_SK], 
-           SUM([Net General Land Value]) AS [General Net - Land], 
-           SUM([Net General Building Value]) AS [General Net - Impr], 
-           SUM([Net School Land Value]) AS [School Net - Land], 
-           SUM([Net School Building Value]) AS [School Net - Impr], 
-           SUM([Net Other Land Value]) AS [Hospital Net - Land], 
-           SUM([Net Other Building Value]) AS [Hospital Net - Impr]
-    FROM [edw].[FactAllAssessedAmounts]
+           SUM(CASE
+                   WHEN [Assessment Code] = '01'
+                   THEN [Net General Value]
+               END) AS [General Net - Land], 
+           SUM(CASE
+                   WHEN [Assessment Code] = '02'
+                   THEN [Net General Value]
+               END) AS [General Net - Impr], 
+           SUM(CASE
+                   WHEN [Assessment Code] = '01'
+                   THEN [Net School Value]
+               END) AS [School Net - Land], 
+           SUM(CASE
+                   WHEN [Assessment Code] = '02'
+                   THEN [Net School Value]
+               END) AS [School Net - Impr], 
+           SUM(CASE
+                   WHEN [Assessment Code] = '01'
+                   THEN [Net Other Value]
+               END) AS [Hospital Net - Land], 
+           SUM(CASE
+                   WHEN [Assessment Code] = '02'
+                   THEN [Net Other Value]
+               END) AS [Hospital Net - Impr]
+    FROM [edw].[FactAssessedValue]
     GROUP BY [dimFolio_SK]
 ) AS [FA2]
      ON [FA].[dimFolio_SK] = [FA2].[dimFolio_SK]
@@ -84,6 +102,7 @@ FROM [edw].[FactActualAmounts] AS [FA]
            [dimFolio_SK], 
            SUM([Property Class Occurrence]) AS [OCRCNT]
     FROM [edw].[FactPropertyClassOccurrenceCount]
+	WHERE [Roll Year] = @p_RY
     GROUP BY [dimFolio_SK]
 ) AS [OC]
      ON [FA2].[dimFolio_SK] = [OC].[dimFolio_SK]
@@ -113,8 +132,8 @@ GROUP BY [FA].[Roll Year],
          IIF([PC].[Property Sub Class Code] = '0202', 'Utilities', ISNULL([PC].[Property Sub Class Desc], [PC].[Property Class Desc]))
 ORDER BY [FA].[Roll Year], 
          [TC].[Regional District Code], 
-         [EA Code],
-		 [AG].[Area Code], 
+         [EA Code], 
+         [AG].[Area Code], 
          [TC].[Jurisdiction Code], 
          [TC].[BCA Code], 
          [TC].[Minor Tax Desc], 
