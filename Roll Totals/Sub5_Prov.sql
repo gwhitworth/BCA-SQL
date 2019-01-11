@@ -16,9 +16,9 @@ SELECT IIF([PC].[Property Sub Class Code] = '0202', 999, [PC].[RowSortOrder]) AS
        END AS [RESNONRES], 
        ISNULL([PC].[Property Sub Class Desc], [PC].[Property Class Desc]) AS [Property Class], 
        COUNT(DISTINCT [FA].[dimFolio_SK]) AS [Folio_Count], 
-       --COUNT([OCRCNT]) AS [Occurrences], 
-	   0 AS [Occurrences], 
-       SUM([FA].[Actual Land Value]) AS [Actual Land Value], 
+       COUNT([OCRCNT]) AS [Occurrences], 
+       SUM([FolioCnt]) AS [Actual Folio Count], 
+	   SUM([FA].[Actual Land Value]) AS [Actual Land Value], 
        SUM([FA].[Actual Building Value]) AS [Actual Building Value], 
        SUM([Actual - Total]) AS [Actual - Total], 
        SUM([Gross General Land Value]) AS [Gross_Gen_Land], 
@@ -43,7 +43,7 @@ FROM
 (
     SELECT [FA].[dimFolio_SK], 
            [dimPropertyClass_SK], 
-           COUNT([FA].[dimFolio_SK]) AS [FolioCnt], 
+           SUM([FA].[Actual Folio Count]) AS [FolioCnt], 
            SUM([Actual Land Value]) AS [Actual Land Value], 
            SUM([Actual Building Value]) AS [Actual Building Value], 
            SUM([Actual Land Value]) + SUM([Actual Building Value]) AS [Actual - Total], 
@@ -66,9 +66,6 @@ FROM
            SUM([Net School Land Value]) AS [Net School Land Value], 
            SUM([Net School Building Value]) AS [Net School Building Value]
     FROM [edw].[FactTotalAllAmounts] AS [FA]
-         INNER JOIN [edw].[dimFolio] AS [FO]
-         ON [FO].[dimFolio_SK] = [FA].[dimFolio_SK]
-            AND [FO].[Folio Status Code] = '01'
          INNER JOIN [edw].[dimAssessmentGeography] AS [AG]
          ON [AG].[dimAssessmentGeography_SK] = [FA].[dimAssessmentGeography_SK]
          INNER JOIN [edw].[dimJurisdiction] AS [JR]
@@ -81,15 +78,15 @@ FROM
     GROUP BY [FA].[dimFolio_SK], 
              [dimPropertyClass_SK]
 ) AS [FA]
---INNER JOIN
---(
---    SELECT DISTINCT 
---           [dimFolio_SK], 
---           [Property Class Occurrence] AS [OCRCNT]
---    FROM [edw].[FactPropertyClassOccurrenceCount]
---    WHERE [Assessment Code] = '01'
---) AS [OC]
---ON [FA].[dimFolio_SK] = [OC].[dimFolio_SK]
+INNER JOIN
+(
+    SELECT DISTINCT 
+           [dimFolio_SK], 
+           [Property Class Occurrence] AS [OCRCNT]
+    FROM [edw].[FactPropertyClassOccurrenceCount]
+    WHERE [Assessment Code] = '01'
+) AS [OC]
+ON [FA].[dimFolio_SK] = [OC].[dimFolio_SK]
 INNER JOIN [edw].[dimPropertyClass] AS [PC]
 ON [FA].[dimPropertyClass_SK] = [PC].[dimPropertyClass_SK]
 INNER JOIN [edw].[dimFolio] AS [FO]

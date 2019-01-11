@@ -7,7 +7,7 @@ DROP VIEW [edw].[dimPCodeList];
 GO
 CREATE VIEW [edw].[dimPCodeList]
 AS
-     SELECT [A].[dimFolio_SK], 
+     SELECT [A].[Folio Number], 
             [A].[dimRollYear_SK], 
      (
          SELECT [dbo].[FNC_FORMAT_Property_Code_List]
@@ -16,11 +16,11 @@ AS
              SELECT DISTINCT 
                     '; '+[B].[Property Class Code]
              FROM [edw].[factValuesByAssessmentCodePropertyClass] AS [B]
-             WHERE [B].[dimFolio_SK] = [A].[dimFolio_SK]
+             WHERE [B].[Folio Number] = [A].[Folio Number]
              ORDER BY '; '+[B].[Property Class Code] FOR XML PATH('')
          ), 1, 1, '')
          )
      ) AS [LST]
      FROM [edw].[factValuesByAssessmentCodePropertyClass] AS [A]
-     GROUP BY [A].[dimFolio_SK], 
+     GROUP BY [A].[Folio Number], 
               [A].[dimRollYear_SK];

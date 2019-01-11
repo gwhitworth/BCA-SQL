@@ -33,6 +33,7 @@ SELECT [edw].[dimProperty].[Roll Year],
        [edw].[bridgeJurisdictionRegionalDistrict].[Regional District Code], 
        [PID_LST].[LST] AS [PROPERTY-ID-LIST], 
 	   [PCode_LST].[LST] AS [PC-CODES],
+	   [PSubClassCode_LST].[LST] AS [PSC-CODES],
 	   [LegDesc_LST].[LST] AS [EXTENDED-LEGAL],
        SUM([edw].[factValuesByAssessmentCodePropertyClass].[Actual Land Value]) AS [Actual Land Value], 
        SUM([edw].[factValuesByAssessmentCodePropertyClass].[Actual Building Value]) AS [Actual Building Value], 
@@ -75,14 +76,21 @@ FROM [edw].[dimProperty]
     FROM [edw].[dimPidList]
     WHERE [dimRollYear_SK] = @p_RY
 ) AS [PID_LST]
-     ON [edw].[factValuesByAssessmentCodePropertyClass].[dimFolio_SK] = [PID_LST].[dimFolio_SK]
+     ON [edw].[factValuesByAssessmentCodePropertyClass].[Folio Number] = [PID_LST].[Folio Number]
 INNER JOIN
 (
     SELECT *
     FROM [edw].[dimPCodeList]
     WHERE [dimRollYear_SK] = @p_RY
 ) AS [PCode_LST]
-     ON [edw].[factValuesByAssessmentCodePropertyClass].[dimFolio_SK] = [PCode_LST].[dimFolio_SK]
+     ON [edw].[factValuesByAssessmentCodePropertyClass].[Folio Number] = [PCode_LST].[Folio Number]
+INNER JOIN
+(
+    SELECT *
+    FROM [edw].[dimPSubClassCodeList]
+    WHERE [dimRollYear_SK] = @p_RY
+) AS [PSubClassCode_LST]
+     ON [edw].[factValuesByAssessmentCodePropertyClass].[Folio Number] = [PSubClassCode_LST].[Folio Number]
 INNER JOIN
 (
     SELECT *
@@ -122,4 +130,5 @@ GROUP BY [edw].[dimProperty].[Roll Year],
          [edw].[bridgeJurisdictionRegionalDistrict].[Regional District Code], 
          [PID_LST].[LST],
 		 [PCode_LST].[LST],
+		 [PSubClassCode_LST].[LST],
 		 [LegDesc_LST].[LST];

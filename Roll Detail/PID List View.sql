@@ -7,7 +7,7 @@ DROP VIEW [edw].[dimPidList];
 GO
 CREATE VIEW [edw].[dimPidList]
 AS
-     SELECT [A].[dimFolio_SK], 
+     SELECT [A].[Folio Number], 
             [A].[dimRollYear_SK], 
      (
          SELECT [dbo].[FNC_FORMAT_Property_ID_List]
@@ -18,11 +18,11 @@ AS
              FROM [edw].[dimParcel] AS [B]
                   INNER JOIN [edw].[bridgeParcelFolio] AS [C]
                   ON [B].[dimParcel_SK] = [C].[dimParcel_SK]
-             WHERE [C].[dimFolio_SK] = [A].[dimFolio_SK]
+             WHERE [C].[Folio Number] = [A].[Folio Number]
              ORDER BY '; '+[B].[PID] FOR XML PATH('')
          ), 1, 1, '')
          )
      ) AS [LST]
      FROM [edw].[bridgeParcelFolio] AS [A]
-     GROUP BY [A].[dimFolio_SK], 
+     GROUP BY [A].[Folio Number], 
               [A].[dimRollYear_SK];
