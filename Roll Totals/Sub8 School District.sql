@@ -1,12 +1,11 @@
-DECLARE @p_RY INT;
-DECLARE @p_CN INT;
+DECLARE @p_RY [INT];
+DECLARE @p_CN [INT];
 DECLARE @p_JR CHAR(3);
 SET @p_RY = 2017;
 SET @p_CN = -1;
 SET @p_JR = '213';
-SELECT [FA].[Roll Year], 
-       [FO].[School District Code], 
-	   [SD].[School District],
+SELECT [SD].[School District Code], 
+       [SD].[School District], 
        [AG].[Area], 
        [AG].[Jurisdiction Code], 
        [AG].[Jurisdiction Code]+' '+[AG].[Jurisdiction Type Desc]+' of '+[AG].[Jurisdiction Desc] AS [Jurisdiction Desc], 
@@ -19,55 +18,91 @@ SELECT [FA].[Roll Year],
            THEN 'NONRES'
        END AS [RESNONRES], 
        ISNULL([PC].[Property Sub Class Desc], [PC].[Property Class Desc]) AS [Property Class], 
-       ISNULL(SUM([OC].[Property Class Occurrence]), 0) AS [Occurrences], 
-       IIF(COUNT(CASE
-                     WHEN [FA].[Assessment Code] = '01'
-                          AND [PC].[Property Class Code] = '01'
-                     THEN [FA].[dimFolio_SK]
-                 END) = 0, COUNT(DISTINCT [FA].dimFolio_SK), COUNT(CASE
-                                                                       WHEN [FA].[Assessment Code] = '01'
-                                                                            AND [PC].[Property Class Code] = '01'
-                                                                       THEN [FA].[dimFolio_SK]
-                                                                   END)) AS [Folio_Count], 
-       IIF(SUM([FA].[Gross General Land Value]) = 0, NULL, SUM([FA].[Gross General Land Value])) AS [Gross_Gen_Land], 
-       IIF(SUM([FA].[Gross General Building Value]) = 0, NULL, SUM([FA].[Gross General Building Value])) AS [Gross_Gen_Improvements], 
-       IIF(SUM([FA].[General Exemptions Land Value]) = 0, NULL, SUM([FA].[General Exemptions Land Value])) AS [Exempt_Gen_Land], 
-       IIF(SUM([FA].[General Exemptions Building Value]) = 0, NULL, SUM([FA].[General Exemptions Building Value])) AS [Exempt_Gen_Improvements], 
-       IIF(SUM([FA].[Net General Land Value]) = 0, NULL, SUM([FA].[Net General Land Value])) AS [Net_Gen_Land], 
-       IIF(SUM([FA].[Net General Building Value]) = 0, NULL, SUM([FA].[Net General Building Value])) AS [Net_Gen_Improvements], 
-       IIF(SUM([FA].[Gross Other Land Value]) = 0, NULL, SUM([FA].[Gross Other Land Value])) AS [Gross_Hosp_Land], 
-       IIF(SUM([FA].[Gross Other Building Value]) = 0, NULL, SUM([FA].[Gross Other Building Value])) AS [Gross_Hosp_Improvements], 
-       IIF(SUM([FA].[Other Exemptions Land Value]) = 0, NULL, SUM([FA].[Other Exemptions Land Value])) AS [Exempt_Hosp_Land], 
-       IIF(SUM([FA].[Other Exemptions Building Value]) = 0, NULL, SUM([FA].[Other Exemptions Building Value])) AS [Exempt_Hosp_Improvements], 
-       IIF(SUM([FA].[Net Other Land Value]) = 0, NULL, SUM([FA].[Net Other Land Value])) AS [Net_Hosp_Land], 
-       IIF(SUM([FA].[Net Other Building Value]) = 0, NULL, SUM([FA].[Net Other Building Value])) AS [Net_Hosp_Improvements], 
-       IIF(SUM([FA].[Gross School Land Value]) = 0, NULL, SUM([FA].[Gross School Land Value])) AS [Gross_School_Land], 
-       IIF(SUM([FA].[Gross School Building Value]) = 0, NULL, SUM([FA].[Gross School Building Value])) AS [Gross_School_Improvements], 
-       IIF(SUM([FA].[School Exemptions Land Value]) = 0, NULL, SUM([FA].[School Exemptions Land Value])) AS [Exempt_School_Land], 
-       IIF(SUM([FA].[School Exemptions Building Value]) = 0, NULL, SUM([FA].[School Exemptions Building Value])) AS [Exempt_School_Improvements], 
-       IIF(SUM([FA].[Net School Land Value]) = 0, NULL, SUM([FA].[Net School Land Value])) AS [Net_School_Land], 
-       IIF(SUM([FA].[Net School Building Value]) = 0, NULL, SUM([FA].[Net School Building Value])) AS [Net_School_Improvements], 
-       IIF(SUM([FA].[Actual Land Value]) = 0, NULL, SUM([FA].[Actual Land Value])) AS [Actual Land Value], 
-       IIF(SUM([FA].[Actual Building Value]) = 0, NULL, SUM([FA].[Actual Building Value])) AS [Actual Building Value]
-FROM [edw].[FactAllAssessedAmounts] AS [FA]
-     INNER JOIN [edw].[dimPropertyClass] AS [PC] ON [FA].[dimPropertyClass_SK] = [PC].[dimPropertyClass_SK]
-     INNER JOIN [edw].[dimAssessmentGeography] AS [AG] ON [FA].[dimAssessmentGeography_SK] = [AG].[dimAssessmentGeography_SK]
-                                                          AND AG.[Roll Category Code] = '1'
-     INNER JOIN [edw].[dimFolio] AS [FO] ON [FO].[dimFolio_SK] = [FA].[dimFolio_SK]
-                                            AND FO.[Folio Status Code] = '01'
-     INNER JOIN [edw].[dimSchoolDistrict] AS [SD] ON [SD].[School District Code] = [FO].[School District Code]
-                                                     AND [SD].[Roll Year] = [FO].[Roll Year]
-     INNER JOIN [edw].[FactPropertyClassOccurrenceCount] AS [OC]
-     ON [FA].[dimFolio_SK] = [OC].[dimFolio_SK]
-WHERE [FA].[Roll Year] = @p_RY
-      AND [FA].[Cycle Number] = @p_CN
-      AND [AG].[Jurisdiction Code] IN(@p_JR)
-GROUP BY [FA].[Roll Year], 
-         [FO].[School District Code],
-		 [SD].[School District], 
+       COUNT(DISTINCT [FA].[dimFolio_SK]) AS [Folio_Count], 
+       COUNT([OCRCNT]) AS [Occurrences], 
+       SUM([FA].[Actual Land Value]) AS [Actual Land Value], 
+       SUM([FA].[Actual Building Value]) AS [Actual Building Value], 
+       SUM([Actual - Total]) AS [Actual - Total], 
+       SUM([Gross General Land Value]) AS [Gross_Gen_Land], 
+       SUM([Gross General Building Value]) AS [Gross_Gen_Improvements], 
+       SUM([General Exemptions Land Value]) AS [Exempt_Gen_Land], 
+       SUM([General Exemptions Building Value]) AS [Exempt_Gen_Improvements], 
+       SUM([Net General Land Value]) AS [Net_Gen_Land], 
+       SUM([Net General Building Value]) AS [Net_Gen_Improvements], 
+       SUM([Gross Other Land Value]) AS [Gross_Hosp_Land], 
+       SUM([Gross Other Building Value]) AS [Gross_Hosp_Improvements], 
+       SUM([Other Exemptions Land Value]) AS [Exempt_Hosp_Land], 
+       SUM([Other Exemptions Building Value]) AS [Exempt_Hosp_Improvements], 
+       SUM([Net Other Land Value]) AS [Net_Hosp_Land], 
+       SUM([Net Other Building Value]) AS [Net_Hosp_Improvements], 
+       SUM([Gross School Land Value]) AS [Gross_School_Land], 
+       SUM([Gross School Building Value]) AS [Gross_School_Improvements], 
+       SUM([School Exemptions Land Value]) AS [Exempt_School_Land], 
+       SUM([School Exemptions Building Value]) AS [Exempt_School_Improvements], 
+       SUM([Net School Land Value]) AS [Net_School_Land], 
+       SUM([Net School Building Value]) AS [Net_School_Improvements]
+FROM
+(
+    SELECT DISTINCT 
+           [FA].[dimFolio_SK], 
+           [dimPropertyClass_SK], 
+           COUNT([FA].[dimFolio_SK]) AS [FolioCnt], 
+           SUM([Actual Land Value]) AS [Actual Land Value], 
+           SUM([Actual Building Value]) AS [Actual Building Value], 
+           SUM([Actual Land Value]) + SUM([Actual Building Value]) AS [Actual - Total], 
+           SUM([Gross General Land Value]) AS [Gross General Land Value], 
+           SUM([Gross General Building Value]) AS [Gross General Building Value], 
+           SUM([General Exemptions Land Value]) * -1 AS [General Exemptions Land Value], 
+           SUM([General Exemptions Building Value]) * -1 AS [General Exemptions Building Value], 
+           SUM([Net General Land Value]) AS [Net General Land Value], 
+           SUM([Net General Building Value]) AS [Net General Building Value], 
+           SUM([Gross Other Land Value]) AS [Gross Other Land Value], 
+           SUM([Gross Other Building Value]) AS [Gross Other Building Value], 
+           SUM([Other Exemptions Land Value]) * -1 AS [Other Exemptions Land Value], 
+           SUM([Other Exemptions Building Value]) * -1 AS [Other Exemptions Building Value], 
+           SUM([Net Other Land Value]) AS [Net Other Land Value], 
+           SUM([Net Other Building Value]) AS [Net Other Building Value], 
+           SUM([Gross School Land Value]) AS [Gross School Land Value], 
+           SUM([Gross School Building Value]) AS [Gross School Building Value], 
+           SUM([School Exemptions Land Value]) * -1 AS [School Exemptions Land Value], 
+           SUM([School Exemptions Building Value]) * -1 AS [School Exemptions Building Value], 
+           SUM([Net School Land Value]) AS [Net School Land Value], 
+           SUM([Net School Building Value]) AS [Net School Building Value]
+    FROM [edw].[FactTotalAllAmounts] AS [FA]
+         INNER JOIN [edw].[dimFolio] AS [FO]
+         ON [FO].[dimFolio_SK] = [FA].[dimFolio_SK]
+            AND [FO].[Folio Status Code] = '01'
+         INNER JOIN [edw].[dimAssessmentGeography] AS [AG]
+         ON [FO].[dimAssessmentGeography_SK] = [AG].[dimAssessmentGeography_SK]
+    WHERE [FA].[Roll Year] = @p_RY
+          AND [Cycle Number] = @p_CN
+          AND [AG].[Jurisdiction Code] IN(@p_JR)
+    GROUP BY [FA].[dimFolio_SK], 
+             [dimPropertyClass_SK]
+) AS [FA]
+INNER JOIN
+(
+    SELECT DISTINCT 
+           [dimFolio_SK], 
+           [Property Class Occurrence] AS [OCRCNT]
+    FROM [edw].[FactPropertyClassOccurrenceCount]
+    WHERE [Assessment Code] = '01'
+) AS [OC]
+ON [FA].[dimFolio_SK] = [OC].[dimFolio_SK]
+INNER JOIN [edw].[dimPropertyClass] AS [PC]
+ON [FA].[dimPropertyClass_SK] = [PC].[dimPropertyClass_SK]
+INNER JOIN [edw].[dimFolio] AS [FO]
+ON [FO].[dimFolio_SK] = [FA].[dimFolio_SK]
+   AND [FO].[Folio Status Code] = '01'
+INNER JOIN [edw].[dimAssessmentGeography] AS [AG]
+ON [FO].[dimAssessmentGeography_SK] = [AG].[dimAssessmentGeography_SK]
+INNER JOIN [edw].[bridgeJurisdictionSchoolDistrict] AS [SD]
+ON [AG].[dimJurisdiction_SK] = [SD].[dimJurisdiction_SK]
+GROUP BY [SD].[School District Code], 
+         [SD].[School District], 
          [AG].[Area], 
-         [AG].[Jurisdiction Code],
-		 [AG].[Jurisdiction Code]+' '+[AG].[Jurisdiction Type Desc]+' of '+[AG].[Jurisdiction Desc], 
+         [AG].[Jurisdiction Code], 
+         [AG].[Jurisdiction Code]+' '+[AG].[Jurisdiction Type Desc]+' of '+[AG].[Jurisdiction Desc], 
          IIF([PC].[Property Sub Class Code] = '0202', 999, [PC].[RowSortOrder]), 
          [PC].[Property Class Code],
          CASE
@@ -77,8 +112,7 @@ GROUP BY [FA].[Roll Year],
              THEN 'NONRES'
          END, 
          ISNULL([PC].[Property Sub Class Desc], [PC].[Property Class Desc])
-ORDER BY [FA].[Roll Year], 
-         [FO].[School District Code], 
+ORDER BY [SD].[School District Code], 
          [AG].[Area], 
          [AG].[Jurisdiction Code], 
          [RESNONRES] DESC, 
