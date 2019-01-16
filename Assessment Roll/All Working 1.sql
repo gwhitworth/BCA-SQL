@@ -121,31 +121,31 @@ SUBSTRING([FO].[Roll Number], 1, 6)+'.'+SUBSTRING([FO].[Roll Number], 6, 3) AS [
 [FO].[SITUS City] AS [Situs City], 
 [FO].[SITUS Province] AS [Situs Province], 
 [FO].[SITUS Postal Code] AS [Situs Postal Code], 
-'??' AS [Situs Freeform Address]
---ISNULL([PL].[Legal Text], '') AS [Legal Description], 
---ISNULL([PL].[PID], '') AS [PID], 
---'??' AS [SUPP Occupancy Date], 
---[FRS].[Previous Year1 Total Actual Value] AS [Previous Roll Value], 
---[PL].[FN Reserve Code] AS [Indian Band (Reservation Number)],
---'??' AS [Dimensions], 
---[PL].[Land Branch File] AS [Lands Branch File Number], 
---'??' AS [Document Number (LTSA Title No)], 
---[PC].[Property Class Desc] AS [Property Class (Land)], 
---[PC].[Property Sub Class Desc] AS [Property Sub-Class (Land)],
---CASE
---    WHEN [Actual Land Value] > 0
---    THEN [FVL].[Exempt Tax Code]
---END AS [Exempt Tax Code Land], 
---[PC].[Property Class Desc] AS [Property Class (Improvement)],
---CASE
---    WHEN [Actual Building Value] > 0
---    THEN [FVL].[Exempt Tax Code]
---END AS [Exempt Tax Code Improvement], 
---[PC].[Property Sub Class Desc] AS [Property Sub-Class (Improvement)], 
---[BR_FA].[Bulk Code], 
---'??' AS [Additional School Tax Flag], 
---[Actual Land Value], 
---[Actual Building Value], 
+'??' AS [Situs Freeform Address],
+ISNULL([PL].[Legal Text], '') AS [Legal Description], 
+ISNULL([PL].[PID], '') AS [PID], 
+'??' AS [SUPP Occupancy Date], 
+[FRS].[Previous Year1 Total Actual Value] AS [Previous Roll Value], 
+[PL].[FN Reserve Code] AS [Indian Band (Reservation Number)],
+'??' AS [Dimensions], 
+[PL].[Land Branch File] AS [Lands Branch File Number], 
+'??' AS [Document Number (LTSA Title No)], 
+[PC].[Property Class Desc] AS [Property Class (Land)], 
+[PC].[Property Sub Class Desc] AS [Property Sub-Class (Land)],
+CASE
+    WHEN [Actual Land Value] > 0
+    THEN [FVL].[Exempt Tax Code]
+END AS [Exempt Tax Code Land], 
+[PC].[Property Class Desc] AS [Property Class (Improvement)],
+CASE
+    WHEN [Actual Building Value] > 0
+    THEN [FVL].[Exempt Tax Code]
+END AS [Exempt Tax Code Improvement], 
+[PC].[Property Sub Class Desc] AS [Property Sub-Class (Improvement)], 
+[BR_FA].[Bulk Code], 
+'??' AS [Additional School Tax Flag], 
+[Actual Land Value], 
+[Actual Building Value] 
 --[Gross General Land Value] AS [General Gross Land], 
 --[Gross General Building Value] AS [General Gross Improvement], 
 --[Gross General Land Value] + [Gross General Building Value] AS [General Gross Total], 
