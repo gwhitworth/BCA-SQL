@@ -25,11 +25,9 @@ SELECT DISTINCT TOP 300 [FACT].[dimFolio_SK],
                         [FMT].[SA - Service Area BCA Codes] AS [Service Area Code], 
                         [FMT].[GS - General Service BCA Codes] AS [General Service Area Code], 
                         [FMT].[IT - Islands Trust BCA Codes] AS [Island Trust Code], 
-                        [FMT].[LA - Local Area BCA Codes] AS [Local Area Code],
-
-						[PL].[FN Reserve Code] AS [Indian Band (Reserve Number)], 
-						'' AS [Indian Band (Reserve Description)],
- 
+                        [FMT].[LA - Local Area BCA Codes] AS [Local Area Code], 
+                        [PL].[FN Reserve Code] AS [Indian Band (Reserve Number)], 
+                        '' AS [Indian Band (Reserve Description)], 
                         [BR_FA].[Equity Type Code] AS [Equity Code], 
                         [OWNCNT].[CNT] AS [Owner Count], 
                         [BR_FA].[Owner Sequence] AS [Owner Seq #], 
@@ -69,48 +67,40 @@ SELECT DISTINCT TOP 300 [FACT].[dimFolio_SK],
                         '' AS [Land Width], 
                         '' AS [Land Depth], 
                         [PL].[Land Branch File] AS [Lands Branch File Number], 
-                        [FRS].[Previous Year1 Total Actual Value] AS [Previous Roll Value], 
-                        
                         '??' AS [Dimensions], 
                         '??' AS [Document Number (LTSA Title No)], 
-                        '' AS [Land PC 01], 
-                        '' AS [Land Psc 0101], 
-                        '' AS [Land Psc 0102], 
-                        '' AS [Land Psc 0103], 
-                        '' AS [Land Psc 0104], 
-                        '' AS [Land Psc 0105], 
-                        '' AS [Land Psc 0106], 
-                        '' AS [Land PC 01], 
-                        '' AS [Land Psc 0201], 
-                        '' AS [Land Psc 0202], 
-                        '' AS [Land PC 01], 
-                        '' AS [Land PC 02], 
-                        '' AS [Land PC 03], 
-                        '' AS [Land PC 04], 
-                        '' AS [Land PC 05], 
-                        '' AS [Land PC 06], 
-                        '' AS [Land PC 07], 
-                        '' AS [Land PC 08], 
-                        '' AS [Land PC 09], 
-                        '' AS [Impr PC 01], 
-                        '' AS [Impr Psc 0101], 
-                        '' AS [Impr Psc 0102], 
-                        '' AS [Impr Psc 0103], 
-                        '' AS [Impr Psc 0104], 
-                        '' AS [Impr Psc 0105], 
-                        '' AS [Impr Psc 0106], 
-                        '' AS [Impr PC 01], 
-                        '' AS [Impr Psc 0201], 
-                        '' AS [Impr Psc 0202], 
-                        '' AS [Impr PC 01], 
-                        '' AS [Impr PC 02], 
-                        '' AS [Impr PC 03], 
-                        '' AS [Impr PC 04], 
-                        '' AS [Impr PC 05], 
-                        '' AS [Impr PC 06], 
-                        '' AS [Impr PC 07], 
-                        '' AS [Impr PC 08], 
-                        '' AS [Impr PC 09], 
+                        [Land PC 01], 
+                        [Land Psc 0102], 
+                        [Land Psc 0103], 
+                        [Land Psc 0104], 
+                        [Land Psc 0105], 
+                        [Land Psc 0106], 
+                        [Land PC 02], 
+                        [Land Psc 0201], 
+                        [Land Psc 0202], 
+                        [Land PC 03], 
+                        [Land PC 04], 
+                        [Land PC 05], 
+                        [Land PC 06], 
+                        [Land PC 07], 
+                        [Land PC 08], 
+                        [Land PC 09], 
+                        [Impr PC 01], 
+                        [Impr Psc 0102], 
+                        [Impr Psc 0103], 
+                        [Impr Psc 0104], 
+                        [Impr Psc 0105], 
+                        [Impr Psc 0106], 
+                        [Impr PC 02], 
+                        [Impr Psc 0201], 
+                        [Impr Psc 0202], 
+                        [Impr PC 03], 
+                        [Impr PC 04], 
+                        [Impr PC 05], 
+                        [Impr PC 06], 
+                        [Impr PC 07], 
+                        [Impr PC 08], 
+                        [Impr PC 09], 
                         [TN].[Tenure Desc] AS [Tenure Code Description], 
                         [FO].[BC Transit Flag], 
                         [ALR].[Agricultural Land Reserve Code]+' - '+[ALR].[Agricultural Land Reserve] AS [ALR Code], 
@@ -120,17 +110,14 @@ SELECT DISTINCT TOP 300 [FACT].[dimFolio_SK],
                         '' AS [Exempt Tax Code Improvement], 
                         '' AS [Additional School Tax Flag], 
                         '' AS [Additional School Tax Value], 
-                        0 AS [Previous Roll Value], 
-                        0 AS [Assessed Land Value], 
-                        0 AS [Assessed Improvement Value], 
-                        0 AS [Assessed Net Value], 
-                        0 AS [Assessed Exempt Value], 
-                        0 AS [Assessed Total Value], 
-
+                        CAST([FRS].[Previous Year1 Total Actual Value] AS NUMERIC(38, 0)) AS [Previous Roll Value], 
+                        CAST([FRS].[Total Land Value] AS NUMERIC(38, 0)) AS [Assessed Land Value], 
+                        CAST([FRS].[Total Building Value] AS NUMERIC(38, 0)) AS [Assessed Improvement Value], 
+                        CAST(([FRS].[Net General Value] + [FRS].[Net Other Value] + [FRS].[Net School Value]) AS NUMERIC(38, 0)) AS [Assessed Net Value], 
+                        CAST(([FRS].[General Exemptions Value] + [FRS].[Other Exemptions Value] + [FRS].[School Exemptions Value]) AS NUMERIC(38, 0)) AS [Assessed Exempt Value], 
+                        CAST([FRS].[Total Assessed Value] AS NUMERIC(38, 0)) AS [Assessed Total Value], 
                         [Actual Land Value], 
-                        [Actual Building Value],
-						
-						 
+                        [Actual Building Value], 
                         [General Gross Land], 
                         [General Gross Improvement], 
                         [General Gross Total], 
@@ -207,11 +194,11 @@ INNER JOIN [edw].[bridgeFolioMinorTax] AS [BTC]
 ON [FACT].[dimFolio_SK] = [BTC].[dimFolio_SK]
 INNER JOIN [edw].[dimMinorTaxCode] AS [TC]
 ON [BTC].[dimMinorTaxCode_SK] = [TC].[dimMinorTaxCode_SK]
-INNER JOIN [edw].[dimPropertyClass] AS [PC]
-ON [FAV].[dimPropertyClass_SK] = [PC].[dimPropertyClass_SK]
+----INNER JOIN [edw].[dimPropertyClass] AS [PC]
+----ON [FAV].[dimPropertyClass_SK] = [PC].[dimPropertyClass_SK]
 INNER JOIN [edw].[dimAssessmentGeography] AS [AG]
 ON [FAV].[dimAssessmentGeography_SK] = [AG].[dimAssessmentGeography_SK]
---AND AG.[Roll Category Code] = '1'
+AND AG.[Roll Category Code] = '1'
 INNER JOIN [edw].[dimFolio] AS [FO]
 ON [FO].[dimFolio_SK] = [FACT].[dimFolio_SK]
    AND [FO].[Folio Status Code] = '01'
@@ -271,6 +258,68 @@ INNER JOIN
 ON [PCnt].[dimFolio_SK] = [FACT].[dimFolio_SK]
 --INNER JOIN [dbo].[NAME_ADDRESS_LINES] AS [NAL]
 --ON [FACT].[dimFolio_SK] = [NAL].[dimFolio_SK]
+INNER JOIN
+(
+    SELECT *
+    FROM
+    (
+        SELECT DISTINCT 
+               [dimFolio_SK], 
+               (CASE [Assessment Code]
+                    WHEN '01'
+                    THEN 'Land PC '+[PC].[Property Class Code]
+                    ELSE 'Impr PC '+[PC].[Property Class Code]
+                END) AS [CODE], 
+               [PC].[Property Class Code]+' - '+[PC].[Property Class Desc] AS [DESC]
+        FROM [edw].[FactAssessedValue] AS [FACT]
+             INNER JOIN [edw].[dimPropertyClass] AS [PC]
+             ON [FACT].[dimPropertyClass_SK] = [PC].[dimPropertyClass_SK]
+        UNION
+        SELECT DISTINCT 
+               [dimFolio_SK], 
+               (CASE [Assessment Code]
+                    WHEN '01'
+                    THEN 'Land Psc '+[PC].[Property Sub Class Code]
+                    ELSE 'Impr Psc '+[PC].[Property Sub Class Code]
+                END) AS [CODE], 
+               [PC].[Property Sub Class Code]+' - '+[PC].[Property Sub Class Desc] AS [DESC]
+        FROM [edw].[FactAssessedValue] AS [FACT]
+             INNER JOIN [edw].[dimPropertyClass] AS [PC]
+             ON [FACT].[dimPropertyClass_SK] = [PC].[dimPropertyClass_SK]
+    ) [DataTable] PIVOT(MAX([DESC]) FOR [CODE] IN([Land PC 01], 
+                                                  [Land Psc 0102], 
+                                                  [Land Psc 0103], 
+                                                  [Land Psc 0104], 
+                                                  [Land Psc 0105], 
+                                                  [Land Psc 0106], 
+                                                  [Land PC 02], 
+                                                  [Land Psc 0201], 
+                                                  [Land Psc 0202], 
+                                                  [Land PC 03], 
+                                                  [Land PC 04], 
+                                                  [Land PC 05], 
+                                                  [Land PC 06], 
+                                                  [Land PC 07], 
+                                                  [Land PC 08], 
+                                                  [Land PC 09], 
+                                                  [Impr PC 01], 
+                                                  [Impr Psc 0102], 
+                                                  [Impr Psc 0103], 
+                                                  [Impr Psc 0104], 
+                                                  [Impr Psc 0105], 
+                                                  [Impr Psc 0106], 
+                                                  [Impr PC 02], 
+                                                  [Impr Psc 0201], 
+                                                  [Impr Psc 0202], 
+                                                  [Impr PC 03], 
+                                                  [Impr PC 04], 
+                                                  [Impr PC 05], 
+                                                  [Impr PC 06], 
+                                                  [Impr PC 07], 
+                                                  [Impr PC 08], 
+                                                  [Impr PC 09])) AS [PIVOT_TMP]
+) AS [PIVOTPC]
+ON [PIVOTPC].[dimFolio_SK] = [FACT].[dimFolio_SK]
 WHERE [FACT].[dimRollYear_SK] = @p_RY
       AND [AG].[Neighbourhood Code] = @p_NH
 ORDER BY [FACT].[dimRollYear_SK], 
