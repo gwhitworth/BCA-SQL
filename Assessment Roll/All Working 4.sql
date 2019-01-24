@@ -250,7 +250,7 @@ SELECT DISTINCT TOP 300 [FACT].[dimFolio_SK],
                         [Sch Net Total Psc 0104], 
                         [Hsptl Net Land Psc 0104], 
                         [Hsptl Net Impr Psc 0104], 
-                        [Hsptl Net Total PC 0104], 
+                        [Hsptl Net Total Psc 0104], 
                         [Gen Gross Land Psc 0105], 
                         [Gen Gross Impr Psc 0105], 
                         [Gen Gross Total Psc 0105], 
@@ -2175,8 +2175,7 @@ FROM
     FROM [edw].[factValuesByAssessmentCodePropertyClass] AS [FACT]
          INNER JOIN [edw].[dimPropertyClass] AS [PC]
          ON [FACT].[dimPropertyClass_SK] = [PC].[dimPropertyClass_SK]
-    WHERE [dimFolio_SK] = 4703916
-          AND [dimRollCycle_SK] = 87
+    WHERE [Current Cycle Flag] = 'Yes'
           AND [FACT].[dimRollYear_SK] = @p_RY
     GROUP BY [FACT].[dimFolio_SK], 
              [FACT].[dimRollYear_SK]
