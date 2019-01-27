@@ -335,9 +335,9 @@ SELECT DISTINCT TOP 300
                         [Hsptl Net Impr PC 02], 
                         [Hsptl Net Total PC 02], 
 
-                        [Gen Gross Land Psc 0201], 
-                        [Gen Gross Impr Psc 0201], 
-                        [Gen Gross Total Psc 0201], 
+                        --[Gen Gross Land Psc 0201], 
+                        --[Gen Gross Impr Psc 0201], 
+                        --[Gen Gross Total Psc 0201], 
 
                         --[Sch Gross Land Psc 0201], 
                         --[Sch Gross Impr Psc 0201], 
