@@ -16,9 +16,9 @@ SELECT [RD].[Regional District Code],
        [PC].[Property Class Code], 
        [PC].[Property Class Desc], 
        [PC].[Property Conversion Factor], 
-       COUNT([FA].[dimFolio_SK]) AS [Hosp Folio], 
+       --COUNT([FA].[dimFolio_SK]) AS [Hosp Folio], 
        COUNT(DISTINCT [FA].[dimFolio_SK]) AS [Hosp Folio distinct], 
-       SUM([OC].[Occurrence]) AS [Hosp Occur], 
+       --SUM([OC].[Occurrence]) AS [Hosp Occur], 
        SUM([Hosp Land]) AS [Hosp Land], 
        SUM([Hosp Improvements]) AS [Hosp Improvements]
 FROM
@@ -46,6 +46,9 @@ FROM
          ON [BMT].[dimFolio_SK] = [A].[dimFolio_SK]
          INNER JOIN [edw].[dimFolio] AS [FO]
          ON [FO].[dimFolio_SK] = [A].[dimFolio_SK] and [FO].dimFolioStatus_BK = '01'
+		 --RIGHT JOIN [edw].[FactPropertyClassOccurrenceCount] AS [OC]
+		 --ON [A].[dimFolio_SK] = [OC].[dimFolio_SK]
+
     WHERE [Current Cycle Flag] = 'Yes'
           AND [A].[dimRollYear_SK] = @p_RY
           AND [B].[Cycle Number] = @p_CN
@@ -66,27 +69,27 @@ INNER JOIN [edw].[dimRegionalDistrict] AS [RD]
 ON [RD].[dimRegionalDistrict_SK] = [BJRD].[dimRegionalDistrict_SK]
 INNER JOIN [edw].[dimMinorTaxCode] AS [MT]
 ON [MT].[dimMinorTaxCode_SK] = [FA].[dimMinorTaxCode_SK]
-LEFT OUTER JOIN
-(
-    SELECT DISTINCT 
-           [FA].[dimFolio_SK], 
-           [Property Class Code], 
-           [Property Class Occurrence] AS [Occurrence]
-    FROM [edw].[FactPropertyClassOccurrenceCount] AS [FA]
-         INNER JOIN [edw].[factValuesByAssessmentCodePropertyClass] AS [FA2]
-         ON [fa].[dimFolio_SK] = [fa2].[dimFolio_SK]
-         INNER JOIN [edw].[dimAssessmentGeography] AS [AG]
-         ON [FA].[dimAssessmentGeography_SK] = [AG].[dimAssessmentGeography_SK]
-		 INNER JOIN [edw].[dimFolio] AS [FO]
-         ON [FO].[dimFolio_SK] = [FA].[dimFolio_SK] and [FO].dimFolioStatus_BK = '01'
-    WHERE [Assessment Code] = '02'
-          AND [fa].[Roll Year] = @p_RY
-          --AND [Jurisdiction Code] = '361'
-          AND [Cycle Number] = @p_CN
-          AND [Property Sub Class Code] IS NULL
-          AND [Current Cycle Flag] = 'Yes'
-) AS [OC]
-ON [FA].[dimFolio_SK] = [OC].[dimFolio_SK]
+--LEFT OUTER JOIN
+--(
+--    SELECT DISTINCT 
+--           [FA].[dimFolio_SK], 
+--           [Property Class Code], 
+--           [Property Class Occurrence] AS [Occurrence]
+--    FROM [edw].[FactPropertyClassOccurrenceCount] AS [FA]
+--         INNER JOIN [edw].[factValuesByAssessmentCodePropertyClass] AS [FA2]
+--         ON [fa].[dimFolio_SK] = [fa2].[dimFolio_SK]
+--         INNER JOIN [edw].[dimAssessmentGeography] AS [AG]
+--         ON [FA].[dimAssessmentGeography_SK] = [AG].[dimAssessmentGeography_SK]
+--		 INNER JOIN [edw].[dimFolio] AS [FO]
+--         ON [FO].[dimFolio_SK] = [FA].[dimFolio_SK] and [FO].dimFolioStatus_BK = '01'
+--    WHERE [Assessment Code] = '02'
+--          AND [fa].[Roll Year] = @p_RY
+--          --AND [Jurisdiction Code] = '361'
+--          AND [Cycle Number] = @p_CN
+--          AND [Property Sub Class Code] IS NULL
+--          AND [Current Cycle Flag] = 'Yes'
+--) AS [OC]
+--ON [FA].[dimFolio_SK] = [OC].[dimFolio_SK]
 WHERE [RD].[Regional District Code] = @p_RD
 --AND [AG].[Jurisdiction Code] = '361'
 GROUP BY [RD].[Regional District Code], 
