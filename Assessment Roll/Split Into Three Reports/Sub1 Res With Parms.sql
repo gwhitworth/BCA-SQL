@@ -1,8 +1,19 @@
-DECLARE @p_RY [INT];
+DECLARE @p_BY CHAR(2);
+DECLARE @p_SubRpt CHAR(2);
+DECLARE @p_RY INT;
+DECLARE @p_CN INT;
 DECLARE @p_NH CHAR(6);
+DECLARE @p_RD CHAR(2);
+SET @p_BY = 'AR'
+SET @p_SubRpt = 'RS'
 SET @p_RY = 2017;
+SET @p_CN = -1;
+SET @p_RY = 2017;
+
 SET @p_NH = '361141';
-SELECT DISTINCT TOP 300 [FACT].[dimFolio_SK], 
+SET @p_RD = '23';
+
+SELECT DISTINCT [FACT].[dimFolio_SK], 
                         [FACT].[dimRollYear_SK], 
                         [AG].[Area Code], 
                         [AG].[Area Desc], 
@@ -11,13 +22,13 @@ SELECT DISTINCT TOP 300 [FACT].[dimFolio_SK],
                         [FO].[Roll Number], 
                         SUBSTRING([FO].[Roll Number], 1, 6)+'.'+SUBSTRING([FO].[Roll Number], 6, 3) AS [Roll Number Formatted], 
                         [AG].[Neighbourhood Code] AS [Neigh Code], 
-                        [AG].[Neighbourhood] AS [Neigh Name], 
+                        [AG].[Neighbourhood Desc] AS [Neigh Name], 
                         [RD].[Regional District Code] AS [RD Code], 
-                        [RD].[Regional District] AS [RD Name], 
+                        [RD].[Regional District Desc] AS [RD Name], 
                         [SD].[School District Code], 
                         [SD].[School District Desc] AS [School District Description], 
                         [HD].[Region Hospital District Code] AS [Regional Hospital District Code], 
-                        [HD].[Region Hospital District] AS [Regional Hospital District Description], 
+                        [HD].[Region Hospital District Desc] AS [Regional Hospital District Description], 
                         [ED].[Electoral District Code] AS [Electoral Area Code], 
                         [ED].[Electoral District Desc] AS [Electoral Area Description], 
                         [FMT].[SM - Specified Municipal BCA Codes] AS [Specified Municipal Code], 
@@ -308,7 +319,8 @@ SELECT DISTINCT TOP 300 [FACT].[dimFolio_SK],
 FROM
 (
     SELECT [FACT].[dimFolio_SK], 
-           [FACT].[dimRollYear_SK], 
+           [FACT].[dimRollYear_SK],
+
            [Gen Gross Land PC 01] = SUM(CASE
                                             WHEN [pc].[Property Class Code] = '01'
                                             THEN [Gross General Land Value]
@@ -609,13 +621,19 @@ FROM
     FROM [edw].[factValuesByAssessmentCodePropertyClass] AS [FACT]
          INNER JOIN [edw].[dimPropertyClass] AS [PC]
          ON [FACT].[dimPropertyClass_SK] = [PC].[dimPropertyClass_SK]
-    WHERE [Current Cycle Flag] = 'Yes'
+		 INNER JOIN [edw].[dimRollCycle] AS [RC] 
+		 ON [RC].dimRollCycle_SK = [FACT].dimRollCycle_SK
+    WHERE @p_SubRpt =  'RS'
+		  AND [Current Cycle Flag] = 'Yes'
           AND [FACT].[dimRollYear_SK] = @p_RY
+		  AND [RC].[Cycle Number] = @p_CN
     GROUP BY [FACT].[dimFolio_SK], 
              [FACT].[dimRollYear_SK]
 ) AS [FACT]
 INNER JOIN [edw].[FactAssessedValue] AS [FAV]
 ON [FAV].[dimFolio_SK] = [FACT].[dimFolio_SK]
+INNER JOIN [edw].[dimRollCycle] AS [RC] 
+		 ON [RC].dimRollCycle_SK = [FAV].dimRollCycle_SK
 INNER JOIN [edw].[dimActualUse] [AU]
 ON [FAV].[dimActualUse_SK] = [AU].[dimActualUse_SK]
 INNER JOIN [edw].[FactRollSummary] AS [FRS]
@@ -748,11 +766,13 @@ INNER JOIN
                                                   [Impr PC 09])) AS [PIVOT_TMP]
 ) AS [PIVOTPC]
 ON [PIVOTPC].[dimFolio_SK] = [FACT].[dimFolio_SK]
-WHERE [FACT].[dimRollYear_SK] = @p_RY
-      AND [AG].[Neighbourhood Code] = @p_NH
+WHERE @p_SubRpt =  'RS'
+      AND [FACT].[dimRollYear_SK] = @p_RY
+	  AND [RC].[Cycle Number] = @p_CN
+      AND ((@p_BY = 'AR' AND [AG].[Neighbourhood Code] IN (@p_NH))
+	      OR (@p_BY = 'RD' AND [RD].[Regional District Code] IN (@p_RD)))
 ORDER BY [FACT].[dimRollYear_SK], 
          [AG].[Area Code], 
-         [AG].[Area Desc], 
-         [AG].[Jurisdiction Code], 
-         [AG].[Jurisdiction Desc], 
+         [AG].[Jurisdiction Code],
+		 [AG].[Neighbourhood Code], 
          [FO].[Roll Number];
