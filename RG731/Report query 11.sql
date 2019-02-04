@@ -1,11 +1,9 @@
-DECLARE @p_RY INT;
-DECLARE @p_CN INT;
+DECLARE @p_RY [INT];
+DECLARE @p_CN [INT];
 DECLARE @p_RD CHAR(2);
-DECLARE @p_JR CHAR(3);
 SET @p_RY = 2017;
 SET @p_CN = -1;
 SET @p_RD = '03';
-SET @p_JR = '213';
 SELECT [RD].[Regional District Code], 
        [RD].[Regional District desc], 
        '(AA'+[AG].[Area Code]+')' AS [Area Code], 
@@ -16,7 +14,7 @@ SELECT [RD].[Regional District Code],
        [PC].[Property Class Code], 
        [PC].[Property Class Desc], 
        [PC].[Property Conversion Factor], 
-       --COUNT([FA].[dimFolio_SK]) AS [Hosp Folio], 
+       COUNT([FA].[dimFolio_SK]) AS [Hosp Folio], 
        COUNT(DISTINCT [FA].[dimFolio_SK]) AS [Hosp Folio distinct], 
        SUM([OC].[Occurrence]) AS [Hosp Occur], 
        SUM([Hosp Land]) AS [Hosp Land], 
@@ -88,6 +86,7 @@ LEFT OUTER JOIN
 ON [FA].[dimFolio_SK] = [OC].[dimFolio_SK]
 WHERE [RD].[Regional District Code] = @p_RD
       AND [BCA Code] <> 'Z'
+      AND ([PC].[Property Sub Class Code] <> '0202' OR [PC].[Property Sub Class Code] IS NULL)
 GROUP BY [RD].[Regional District Code], 
          [RD].[Regional District desc], 
          '(AA'+[AG].[Area Code]+')', 
