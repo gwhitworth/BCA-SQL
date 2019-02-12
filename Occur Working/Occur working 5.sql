@@ -1,0 +1,127 @@
+DECLARE @p_RY INT;
+DECLARE @p_CN INT;
+SET @p_RY = 2017;
+SET @p_CN = -1;
+--SELECT [AG].[Jurisdiction Code], 
+--       [AG].[Jurisdiction Code]+' '+[AG].[Jurisdiction Type Desc]+' of '+[AG].[Jurisdiction Desc] AS [Jurisdiction], 
+--       [AG].[Jurisdiction Code]+' '+[AG].[Jurisdiction Desc] AS [JurisdictionRural], 
+--       [PC].[Property Class Code], 
+--       [PC].[Property Sub Class Code], 
+--       COUNT(DISTINCT CASE
+--                          WHEN [PC].[Property Class Code] = '01'
+--                               AND [AV].[Assessment Code] <> '01'
+--                          THEN [AV].[dimFolio_SK]
+--                      END) AS [Res Occur], 
+--       COUNT(DISTINCT CASE
+--                          WHEN [PC].[Property Class Code] <> '01'
+--                               AND [AV].[Assessment Code] = '01'
+--                          THEN [AV].[dimFolio_SK]
+--                      END) AS [Non Res Occur], 
+--       COUNT(DISTINCT CASE
+--                          WHEN [PC].[Property Class Code] = '01'
+--                          THEN [AV].[dimFolio_SK]
+--                      END) AS [Folios]
+--FROM [edw].[FactAssessedValue] AS [AV]
+--     INNER JOIN [edw].[dimPropertyClass] AS [PC]
+--     ON [AV].[dimPropertyClass_SK] = [PC].[dimPropertyClass_SK]
+--     INNER JOIN [edw].[dimAssessmentGeography] AS [AG]
+--     ON [AV].[dimAssessmentGeography_SK] = [AG].[dimAssessmentGeography_SK]
+--     INNER JOIN [edw].[dimJurisdiction] AS [JR]
+--     ON [AG].[dimJurisdiction_SK] = [JR].[dimJurisdiction_SK]
+--     INNER JOIN [edw].[bridgeJurisdictionSchoolDistrict] AS [SD]
+--     ON [SD].[dimJurisdiction_SK] = [JR].[dimJurisdiction_SK]
+--     INNER JOIN [edw].[dimArea] AS [AR]
+--     ON [JR].[dimArea_SK] = [AR].[dimArea_SK]
+--     INNER JOIN [edw].[dimFolio] AS [FO]
+--     ON [FO].[dimFolio_SK] = [AV].[dimFolio_SK]
+--WHERE [AV].[Roll Year] = @p_RY
+--      AND [FO].[Folio Status Code] = '01'
+--      AND [AG].[Roll Category Code] = '1'
+--      AND [AV].[Cycle Number] = @p_CN
+--      AND [AG].[Jurisdiction Code] = '361'
+--GROUP BY [AG].[Jurisdiction Code], 
+--         [AG].[Jurisdiction Code]+' '+[AG].[Jurisdiction Type Desc]+' of '+[AG].[Jurisdiction Desc], 
+--         [AG].[Jurisdiction Code]+' '+[AG].[Jurisdiction Desc], 
+--         [PC].[Property Class Code], 
+--         [PC].[Property Sub Class Code]
+--ORDER BY [PC].[Property Class Code], 
+--         [PC].[Property Sub Class Code];
+
+SELECT DISTINCT 
+--[SD].[School District Code] AS [School District Code], 
+--[SD].[School District Desc] AS [School District], 
+--'AA'+[AR].[Area Code] AS [Area], 
+       [JurisdictionFormatted], 
+       [Res Occur], 
+       [Non Res Occur], 
+       [Folios]
+FROM
+(
+    SELECT [Jurisdiction Code],
+           CASE
+               WHEN CHARINDEX('Rural', [JurisdictionRural]) > 0
+               THEN [JurisdictionRural]
+               ELSE [Jurisdiction]
+           END AS [JurisdictionFormatted], 
+           [Res Occur], 
+           [Non Res Occur], 
+           [Folios]
+    FROM
+    (
+        SELECT [Jurisdiction Code], 
+               [Jurisdiction], 
+               [JurisdictionRural], 
+               SUM([Res Occur]) AS [Res Occur], 
+               SUM([Non Res Occur]) AS [Non Res Occur], 
+               SUM([Folios]) AS [Folios]
+        FROM
+        (
+            SELECT [AG].[Jurisdiction Code], 
+                   [AG].[Jurisdiction Code]+' '+[AG].[Jurisdiction Type Desc]+' of '+[AG].[Jurisdiction Desc] AS [Jurisdiction], 
+                   [AG].[Jurisdiction Code]+' '+[AG].[Jurisdiction Desc] AS [JurisdictionRural], 
+                   [PC].[Property Class Code], 
+                   [PC].[Property Sub Class Code], 
+                   COUNT(DISTINCT CASE
+                                      WHEN [PC].[Property Class Code] = '01'
+                                           AND [AV].[Assessment Code] <> '01'
+                                      THEN [AV].[dimFolio_SK]
+                                  END) AS [Res Occur], 
+                   COUNT(DISTINCT CASE
+                                      WHEN [PC].[Property Class Code] <> '01'
+                                           AND [AV].[Assessment Code] = '01'
+                                      THEN [AV].[dimFolio_SK]
+                                  END) AS [Non Res Occur], 
+                   COUNT(DISTINCT CASE
+                                      WHEN [PC].[Property Class Code] = '01'
+                                      THEN [AV].[dimFolio_SK]
+                                  END) AS [Folios]
+            FROM [edw].[FactAssessedValue] AS [AV]
+                 INNER JOIN [edw].[dimPropertyClass] AS [PC]
+                 ON [AV].[dimPropertyClass_SK] = [PC].[dimPropertyClass_SK]
+                 INNER JOIN [edw].[dimAssessmentGeography] AS [AG]
+                 ON [AV].[dimAssessmentGeography_SK] = [AG].[dimAssessmentGeography_SK]
+                 INNER JOIN [edw].[dimJurisdiction] AS [JR]
+                 ON [AG].[dimJurisdiction_SK] = [JR].[dimJurisdiction_SK]
+                 INNER JOIN [edw].[bridgeJurisdictionSchoolDistrict] AS [SD]
+                 ON [SD].[dimJurisdiction_SK] = [JR].[dimJurisdiction_SK]
+                 INNER JOIN [edw].[dimArea] AS [AR]
+                 ON [JR].[dimArea_SK] = [AR].[dimArea_SK]
+                 INNER JOIN [edw].[dimFolio] AS [FO]
+                 ON [FO].[dimFolio_SK] = [AV].[dimFolio_SK]
+            WHERE [AV].[Roll Year] = @p_RY
+                  AND [FO].[Folio Status Code] = '01'
+                  AND [AG].[Roll Category Code] = '1'
+                  AND [AV].[Cycle Number] = @p_CN
+                  AND [AG].[Jurisdiction Code] = '361'
+				  and [PC].[Property Class Code] = '01'
+            GROUP BY [AG].[Jurisdiction Code], 
+                     [AG].[Jurisdiction Code]+' '+[AG].[Jurisdiction Type Desc]+' of '+[AG].[Jurisdiction Desc], 
+                     [AG].[Jurisdiction Code]+' '+[AG].[Jurisdiction Desc], 
+                     [PC].[Property Class Code], 
+                     [PC].[Property Sub Class Code]
+        ) AS [Occurances]
+        GROUP BY [Jurisdiction Code], 
+                 [Jurisdiction], 
+                 [JurisdictionRural]
+    ) AS [OCCURLIST]
+) AS [OCCUR];

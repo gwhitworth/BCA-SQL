@@ -1,5 +1,5 @@
 select TABLE_NAME, COLUMN_NAME from [INFORMATION_SCHEMA].[COLUMNS]
-WHERE COLUMN_NAME like '%dimPropertyClass_SK%'
+WHERE COLUMN_NAME like '%dimTaxExemption_SK%'
 
 --select TABLE_NAME, COLUMN_NAME from [dimINFORMATION_SCHEMA].[COLUMNS]
 --WHERE COLUMN_NAME like '%Parcel%'
