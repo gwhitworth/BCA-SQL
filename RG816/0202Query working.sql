@@ -4,15 +4,15 @@ DECLARE @p_MTC CHAR(9);
 SET @p_RY = 2017;
 SET @p_CN = -1;
 SET @p_MTC = '01-40103F';
-SET @p_MTC = '01-36103B';
-SET @p_MTC = '01-36203B';
+--SET @p_MTC = '01-36103B';
+--SET @p_MTC = '01-36203B';
 SELECT [Jurisdiction Code], 
        [Minor Tax Code], 
        COUNT(*) AS [CNT]
 FROM
 (
-    SELECT [BMT].[Jurisdiction Code], 
-           [BMT].[Minor Tax Code]
+    SELECT [FA].[dimFolio_SK],[BMT].[Jurisdiction Code], 
+           [BMT].[Minor Tax Code],[Net Other Land Value],[Net Other Building Value]
     FROM [edw].[factValuesByAssessmentCodePropertyClass] AS [FA]
          INNER JOIN [edw].[dimFolio] AS [FO]
          ON [FO].[dimFolio_SK] = [FA].[dimFolio_SK]
