@@ -4,12 +4,13 @@ DECLARE @p_AR CHAR(2);
 SET @p_RY = 2017;
 SET @p_CN = -1;
 SET @p_AR = '01';
-SELECT [AR].[Area Code], 
-       [Jurisdiction Code]
-FROM edw.dimJurisdiction AS [JR]
-     INNER JOIN [edw].[dimArea] AS [AR] ON [JR].dimArea_SK = [AR].dimArea_SK
-WHERE([JR].dimRollYear_SK = @p_RY)
-     AND [Jurisdiction Code] > '199'
-     AND [AR].[Area Code] = @p_AR
-ORDER BY [AR].[Area Code], 
+SELECT DISTINCT [AG].[Area Code], 
+       [JR].[Jurisdiction Code]
+FROM [edw].[dimJurisdiction] AS [JR]
+	 INNER JOIN [edw].[dimAssessmentGeography] AS [AG]
+	 ON [JR].[dimJurisdiction_SK] = [AG].[dimJurisdiction_SK]
+WHERE([JR].[dimRollYear_SK] = @p_RY)
+     AND [JR].[Jurisdiction Code] > '199'
+     AND [AG].[Area Code] = @p_AR
+ORDER BY [AG].[Area Code], 
          [Jurisdiction Code];
