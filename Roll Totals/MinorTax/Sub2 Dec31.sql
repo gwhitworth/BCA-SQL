@@ -5,7 +5,7 @@ SET @p_RY = 2017;
 SET @p_MT = 'Denman Island Local Trust Area';
 SET @p_JR = '771';
 
-SELECT [FA].[Roll Year], 
+SELECT [FA].[dimRollYear_SK] AS [Roll Year], 
        [TC].[BCA Code] AS [Island Trust Code], 
        [TC].[Minor Tax Desc] AS [Island Trust], 
        [PC].[Property Class Code] AS [PC Code], 
@@ -46,36 +46,18 @@ SELECT [FA].[Roll Year],
            END) AS [Hospital Occurrences], 
        SUM([Hospital Net - Land]) AS [Hospital Net - Land], 
        SUM([Hospital Net - Impr]) AS [Hospital Net - Impr]
-FROM [edw].[FactActualAmounts] AS [FA]
+FROM [edw].[factValuesByAssessmentCodePropertyClass] AS [FA]
      INNER JOIN
 (
     SELECT DISTINCT 
            [dimFolio_SK], 
-           SUM(CASE
-                   WHEN [Assessment Code] = '01'
-                   THEN [Net General Value]
-               END) AS [General Net - Land], 
-           SUM(CASE
-                   WHEN [Assessment Code] = '02'
-                   THEN [Net General Value]
-               END) AS [General Net - Impr], 
-           SUM(CASE
-                   WHEN [Assessment Code] = '01'
-                   THEN [Net School Value]
-               END) AS [School Net - Land], 
-           SUM(CASE
-                   WHEN [Assessment Code] = '02'
-                   THEN [Net School Value]
-               END) AS [School Net - Impr], 
-           SUM(CASE
-                   WHEN [Assessment Code] = '01'
-                   THEN [Net Other Value]
-               END) AS [Hospital Net - Land], 
-           SUM(CASE
-                   WHEN [Assessment Code] = '02'
-                   THEN [Net Other Value]
-               END) AS [Hospital Net - Impr]
-    FROM [edw].[FactAssessedValue]
+           SUM([Net General Land Value]) AS [General Net - Land], 
+           SUM([Net General Building Value]) AS [General Net - Impr], 
+           SUM([Net School Land Value]) AS [School Net - Land], 
+           SUM([Net School Building Value]) AS [School Net - Impr], 
+           SUM([Net Other Land Value]) AS [Hospital Net - Land], 
+           SUM([Net Other Building Value]) AS [Hospital Net - Impr]
+    FROM [edw].[factValuesByAssessmentCodePropertyClass]
     GROUP BY [dimFolio_SK]
 ) AS [FA2]
      ON [FA].[dimFolio_SK] = [FA2].[dimFolio_SK]
@@ -91,26 +73,27 @@ FROM [edw].[FactActualAmounts] AS [FA]
      INNER JOIN [edw].[dimFolio] AS [FO]
      ON [FO].[dimFolio_SK] = [FA].[dimFolio_SK]
         AND [FO].[Folio Status Code] = '01'
+		INNER JOIN [edw].[dimRollCycle] AS [RC]
+         ON [FA].[dimRollCycle_SK] = [RC].[dimRollCycle_SK]
      INNER JOIN
 (
     SELECT DISTINCT 
            [dimFolio_SK], 
            SUM([Property Class Occurrence]) AS [OCRCNT]
     FROM [edw].[FactPropertyClassOccurrenceCount]
-	WHERE [Roll Year] = @p_RY
     GROUP BY [dimFolio_SK]
 ) AS [OC]
      ON [FA2].[dimFolio_SK] = [OC].[dimFolio_SK]
-WHERE [FA].[Roll Year] = @p_RY
-      AND [FA].[Cycle Number] = -1
+WHERE [FA].[dimRollYear_SK] = @p_RY
+      AND [Cycle Number] = -1
      AND [TC].[Minor Tax Code] IN
 (
     SELECT [Minor Tax Code]
-    FROM [EDW].[dbo].[dimMinorTaxCodeTbl]
-    WHERE [Roll Year] = @p_RY
+    FROM [edw].[dimMinorTaxCode]
+    WHERE [dimRollYear_SK] = @p_RY
           AND [Minor Tax Desc] IN(@p_MT)
 )
-GROUP BY [FA].[Roll Year], 
+GROUP BY [FA].[dimRollYear_SK], 
          [TC].[Regional District Code], 
          REPLACE([TC].[Regional District], [TC].[Regional District Code]+' - ', ''), 
          REVERSE(RIGHT([TC].[Electoral District Code], 1)), 
@@ -125,7 +108,7 @@ GROUP BY [FA].[Roll Year],
          REPLACE([PC].[Property Class], [PC].[Property Class Code]+' - ', ''), 
          IIF([PC].[Property Sub Class Code] = '0202', '0201', ISNULL([PC].[Property Sub Class Code], [PC].[Property Class Code])), 
          IIF([PC].[Property Sub Class Code] = '0202', 'Utilities', ISNULL([PC].[Property Sub Class Desc], [PC].[Property Class Desc]))
-ORDER BY [FA].[Roll Year], 
+ORDER BY [FA].[dimRollYear_SK], 
          [TC].[BCA Code], 
          [TC].[Minor Tax Desc], 
          [TC].[Tax Base Code], 

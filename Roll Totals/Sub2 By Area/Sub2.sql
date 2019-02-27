@@ -4,7 +4,7 @@ DECLARE @p_AR CHAR(2);
 SET @p_RY = 2017;
 SET @p_CN = -1;
 SET @p_AR = '01';
-SELECT [FA].[Roll Year], 
+SELECT [FA].[dimRollYear_SK], 
        [AG].[Area], 
        IIF([PC].[Property Sub Class Code] = '0202', 999, [PC].[RowSortOrder]) AS [RowSortOrder], 
        [PC].[Property Class Code],
@@ -43,7 +43,7 @@ FROM
     SELECT DISTINCT 
            [FA].[dimFolio_SK], 
            [dimPropertyClass_SK], 
-           [FA].[Roll Year], 
+           [FA].[dimRollYear_SK], 
            [Cycle Number], 
            COUNT([FA].[dimFolio_SK]) AS [FolioCnt], 
            SUM([Actual Land Value]) AS [Actual Land Value], 
@@ -67,18 +67,20 @@ FROM
            SUM([School Exemptions Building Value]) * -1 AS [School Exemptions Building Value], 
            SUM([Net School Land Value]) AS [Net School Land Value], 
            SUM([Net School Building Value]) AS [Net School Building Value]
-    FROM [edw].[FactTotalAllAmounts] AS [FA]
+    FROM [edw].[factValuesByAssessmentCodePropertyClass] AS [FA]
          INNER JOIN [edw].[dimFolio] AS [FO]
          ON [FO].[dimFolio_SK] = [FA].[dimFolio_SK]
             AND [FO].[Folio Status Code] = '01'
          INNER JOIN [edw].[dimAssessmentGeography] AS [AG]
          ON [FO].[dimAssessmentGeography_SK] = [AG].[dimAssessmentGeography_SK]
-    WHERE [FA].[Roll Year] = @p_RY
+		 INNER JOIN [edw].[dimRollCycle] AS [RC]
+         ON [FA].[dimRollCycle_SK] = [RC].[dimRollCycle_SK]
+    WHERE [FA].[dimRollYear_SK] = @p_RY
           AND [Cycle Number] = @p_CN
           AND [AG].[Area Code] = @p_AR
     GROUP BY [FA].[dimFolio_SK], 
              [dimPropertyClass_SK], 
-             [FA].[Roll Year], 
+             [FA].[dimRollYear_SK], 
              [Cycle Number]
 ) AS [FA]
 INNER JOIN
@@ -97,10 +99,10 @@ ON [FO].[dimFolio_SK] = [FA].[dimFolio_SK]
    AND [FO].[Folio Status Code] = '01'
 INNER JOIN [edw].[dimAssessmentGeography] AS [AG]
 ON [FO].[dimAssessmentGeography_SK] = [AG].[dimAssessmentGeography_SK]
-WHERE [FA].[Roll Year] = @p_RY
+WHERE [FA].[dimRollYear_SK] = @p_RY
       AND [FA].[Cycle Number] = @p_CN
       AND [AG].[Area Code] = @p_AR
-GROUP BY [FA].[Roll Year], 
+GROUP BY [FA].[dimRollYear_SK], 
          [AG].[Area], 
          IIF([PC].[Property Sub Class Code] = '0202', 999, [PC].[RowSortOrder]), 
          [PC].[Property Class Code],
@@ -111,7 +113,7 @@ GROUP BY [FA].[Roll Year],
              THEN 'NONRES'
          END, 
          ISNULL([PC].[Property Sub Class Desc], [PC].[Property Class Desc])
-ORDER BY [FA].[Roll Year], 
+ORDER BY [FA].[dimRollYear_SK], 
          [AG].[Area], 
          [RESNONRES] DESC, 
          [RowSortOrder];

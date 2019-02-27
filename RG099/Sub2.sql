@@ -22,7 +22,7 @@ SELECT [AG].[Area],
        ISNULL([PC].[Property Sub Class Desc], [PC].[Property Class Desc]) AS [Property Class], 
        COUNT(DISTINCT [FA].[dimFolio_SK]) AS [Folio_Count], 
        --COUNT([OC].[dimFolio_SK]) AS [Occurrences], 
-	   0 AS [Occurrences], 
+       0 AS [Occurrences], 
        SUM([FA].[Gross General Land Value]) AS [Gross_Gen_Land], 
        SUM([FA].[Gross General Building Value]) AS [Gross_Gen_Improvements], 
        SUM([FA].[Gross General Total Value]) AS [Gross_Gen_Total], 
@@ -51,51 +51,94 @@ SELECT [AG].[Area],
        SUM([FA].[Net School Building Value]) AS [Net_School_Improvements], 
        SUM([FA].[Net School Total Value]) AS [Net_School_Total]
 FROM [edw].[factValuesByAssessmentCodePropertyClass] AS [FA]
-     LEFT OUTER JOIN [edw].[dimPropertyClass] AS [PC]
+     INNER JOIN [edw].[dimPropertyClass] AS [PC]
      ON [FA].[dimPropertyClass_SK] = [PC].[dimPropertyClass_SK]
-     LEFT OUTER JOIN [edw].[dimAssessmentGeography] AS [AG]
+     INNER JOIN [edw].[dimAssessmentGeography] AS [AG]
      ON [FA].[dimAssessmentGeography_SK] = [AG].[dimAssessmentGeography_SK]
-        --AND [AG].[Roll Category Code] = '1'
-     LEFT OUTER JOIN [edw].[dimFolio] AS [FO]
+        AND [AG].[Roll Category Code] = '1'
+     INNER JOIN [edw].[dimFolio] AS [FO]
      ON [FO].[dimFolio_SK] = [FA].[dimFolio_SK]
-        --AND [FO].[Folio Status Code] = '01'
-     LEFT OUTER JOIN [edw].[dimRollCycle] AS [RC]
+        AND [FO].[Folio Status Code] = '01'
+        AND [FO].[BC Hydro Flag] IS NULL
+     INNER JOIN [edw].[dimRollCycle] AS [RC]
      ON [FA].[dimRollCycle_SK] = [RC].[dimRollCycle_SK]
---     INNER JOIN
---(
---    SELECT DISTINCT 
---           [FA].[dimFolio_SK], 
---           [FA].[dimArea_SK], 
---           [FA].[dimPropertyClass_SK], 
---           [PC].[Property Class Code]
---    FROM [edw].[factValuesByAssessmentCodePropertyClass] AS [FA]
---         INNER JOIN [edw].[dimFolio] AS [FO]
---         ON [FO].[dimFolio_SK] = [FA].[dimFolio_SK]
---            AND [FO].[dimFolioStatus_BK] = '01'
---         LEFT OUTER JOIN [edw].[dimPropertyClass] AS [PC]
---         ON [FA].[dimPropertyClass_SK] = [PC].[dimPropertyClass_SK]
---         INNER JOIN [edw].[dimRollCycle] AS [RC]
---         ON [FA].[dimRollCycle_SK] = [RC].[dimRollCycle_SK]
---         INNER JOIN [edw].[dimArea] AS [AR]
---         ON [AR].[dimArea_SK] = [FA].[dimArea_SK]
---    --WHERE [FA].[Net General Total Value] > 0
---          WHERE [FA].[dimRollYear_SK] = @p_RY
---          AND [RC].[Cycle Number] = @p_CN
---          AND [AR].[Area Code] = @p_AR
---          AND ([PC].[Property Class Code] > '02'
---               OR [PC].[Property Sub Class Code] IS NOT NULL)
---) AS [OC]
---     ON [OC].[dimFolio_SK] = [FA].[dimFolio_SK]
-        --AND [OC].[dimArea_SK] = [AG].[dimArea_SK]
-        --AND [OC].[dimPropertyClass_SK] = [PC].[dimPropertyClass_SK]
+     INNER JOIN
+(
+(
+    SELECT DISTINCT 
+           [PCLASS], 
+           [CNT]
+    FROM
+    (
+        SELECT ISNULL([PC].[Property Sub Class Code], [PC].[Property Class Code]) AS [PCLASS], 
+               COUNT(DISTINCT [FA].[dimFolio_SK]) AS [CNT]
+        FROM [edw].[factValuesByAssessmentCodePropertyClass] AS [FA]
+             INNER JOIN [edw].[dimPropertyClass] AS [PC]
+             ON [FA].[dimPropertyClass_SK] = [PC].[dimPropertyClass_SK]
+             INNER JOIN [edw].[dimAssessmentGeography] AS [AG]
+             ON [FA].[dimAssessmentGeography_SK] = [AG].[dimAssessmentGeography_SK]
+                AND [AG].[Roll Category Code] = '1'
+             INNER JOIN [edw].[dimFolio] AS [FO]
+             ON [FO].[dimFolio_SK] = [FA].[dimFolio_SK]
+                AND [FO].[Folio Status Code] = '01'
+        WHERE [FA].[dimRollYear_SK] = @p_RY
+              AND [AG].[Area Code] = @p_AR
+              AND [PC].[Property Class Code] = '01'
+              AND [PC].[Property Sub Class Code] IS NOT NULL
+              AND ([FA].[Net General Total Value] + [FA].[Net Other Total Value] + [FA].[Net School Total Value] > 0 )
+        GROUP BY ISNULL([PC].[Property Sub Class Code], [PC].[Property Class Code])
+    ) AS [T1]
+    UNION
+(
+    SELECT ISNULL([PC].[Property Sub Class Code], [PC].[Property Class Code]) AS [PCLASS], 
+           COUNT(DISTINCT [FA].[dimFolio_SK]) AS [CNT]
+    FROM [edw].[factValuesByAssessmentCodePropertyClass] AS [FA]
+         INNER JOIN [edw].[dimPropertyClass] AS [PC]
+         ON [FA].[dimPropertyClass_SK] = [PC].[dimPropertyClass_SK]
+         INNER JOIN [edw].[dimAssessmentGeography] AS [AG]
+         ON [FA].[dimAssessmentGeography_SK] = [AG].[dimAssessmentGeography_SK]
+            AND [AG].[Roll Category Code] = '1'
+         INNER JOIN [edw].[dimFolio] AS [FO]
+         ON [FO].[dimFolio_SK] = [FA].[dimFolio_SK]
+            AND [FO].[Folio Status Code] = '01'
+    WHERE [FA].[dimRollYear_SK] = @p_RY
+          AND [AG].[Area Code] = @p_AR
+          AND [PC].[Property Class Code] = '02'
+          AND [PC].[Property Sub Class Code] IS NOT NULL
+          AND (([PC].[Property Sub Class Code] = '0201'
+                AND ([FA].[Net General Total Value] + [FA].[Net Other Total Value] + [FA].[Net School Total Value] > 0 ))
+               OR ([PC].[Property Sub Class Code] = '0202'))
+    GROUP BY ISNULL([PC].[Property Sub Class Code], [PC].[Property Class Code])
+)
+UNION
+(
+    SELECT ISNULL([PC].[Property Sub Class Code], [PC].[Property Class Code]) AS [PCLASS], 
+           COUNT(DISTINCT [FA].[dimFolio_SK]) AS [CNT]
+    FROM [edw].[factValuesByAssessmentCodePropertyClass] AS [FA]
+         INNER JOIN [edw].[dimPropertyClass] AS [PC]
+         ON [FA].[dimPropertyClass_SK] = [PC].[dimPropertyClass_SK]
+         INNER JOIN [edw].[dimAssessmentGeography] AS [AG]
+         ON [FA].[dimAssessmentGeography_SK] = [AG].[dimAssessmentGeography_SK]
+            AND [AG].[Roll Category Code] = '1'
+         INNER JOIN [edw].[dimFolio] AS [FO]
+         ON [FO].[dimFolio_SK] = [FA].[dimFolio_SK]
+            AND [FO].[Folio Status Code] = '01'
+    WHERE [FA].[dimRollYear_SK] = @p_RY
+          AND [AG].[Area Code] = @p_AR
+          AND [PC].[Property Class Code] > '02'
+          AND ([FA].[Net General Total Value] + [FA].[Net Other Total Value] + [FA].[Net School Total Value] > 0 )
+    GROUP BY ISNULL([PC].[Property Sub Class Code], [PC].[Property Class Code])
+)
+)
+) AS [FCNT]
+     ON [FCNT].[PCLASS] = ISNULL([PC].[Property Sub Class Code], [PC].[Property Class Code])
 WHERE [FA].[dimRollYear_SK] = @p_RY
       AND [RC].[Cycle Number] = @p_CN
       AND [AG].[Area Code] = @p_AR
-      AND (([PC].[Property Class Code] = '01'
-            AND [FA].[Gross General Total Value] > 0)
-OR ([PC].[Property Class Code] <> '01'
-    AND [FA].[Gross General Total Value] > 0
-    OR [PC].[Property Sub Class Code] = '0202'))
+      AND (([PC].[Property Class Code] IN('01', '02')
+      AND [PC].[Property Sub Class Code] IS NOT NULL)
+OR ([PC].[Property Class Code] > '02'))
+    --AND [FA].[Net General Land Value] > 0))
 GROUP BY [AG].[Area],
          CASE
              WHEN [PC].[Property Sub Class Code] = '0202'
