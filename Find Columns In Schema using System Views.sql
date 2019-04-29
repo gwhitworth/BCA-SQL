@@ -1,5 +1,5 @@
 select TABLE_NAME, COLUMN_NAME from [INFORMATION_SCHEMA].[COLUMNS]
-WHERE COLUMN_NAME like '%propertyclass%' --AND TABLE_NAME  like '%fact%'
+WHERE COLUMN_NAME like '%dimPropertyClass_SK%' --AND TABLE_NAME  like '%fact%'
 
 --select TABLE_NAME, COLUMN_NAME from [dimINFORMATION_SCHEMA].[COLUMNS]
 --WHERE COLUMN_NAME like '%Parcel%'
