@@ -17,7 +17,7 @@ SELECT DISTINCT
        [FACT2].[Actual Total Value] AS [ACTUAL TOTAL], 
        [FACT2].[Actual Land Value] AS [ACTUAL LAND], 
        [FACT2].[Actual Building Value] AS [ACTUAL IMPR], 
-       [PCODES].[PropertyClassCodeList] AS [PROPERTY CLASS], 
+       [PCODES].[Property Class Code List] AS [PROPERTY CLASS], 
        [RD].[Regional District] AS [REGIONAL DISTRICT], 
        [FACT].[Outbuilding Count] AS [BLDG COUNT], 
        [AU].[Actual Use Category Desc] AS [BUILDING TYPE], 
@@ -49,8 +49,8 @@ FROM [edw].[FactPropertyInventorySummary] AS [FACT]
 (
     SELECT [dimRollYear_SK], 
            [dimProperty_SK], 
-           [PropertyClassCodeList]
-    FROM [EDW].[edw].[dimPropertyPropertyClassLists]
+           [Property Class Code List]
+    FROM [EDW].[edw].[dimPropertyDetails]
 ) AS [PCODES]
      ON [PCODES].[dimProperty_SK] = [FACT].[dimProperty_SK]
         AND [PCODES].[dimRollYear_SK] = [FACT].[dimRollYear_SK]
