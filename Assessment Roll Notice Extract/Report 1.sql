@@ -3,7 +3,7 @@ DECLARE @RollYear [INT]= 2018;
 SELECT TOP 20 'BCA00020' AS [Record ID], 
               [PR].[Area Code] + [PR].[Jurisdiction Code] + [PR].[Roll Number] AS [Area Jurisdiction Roll], 
               [PR].[SITUS Postal Code] AS [postal Code], 
-              SUBSTRING([BAD].[Bulk Code], 1, 4) AS [Bulk mail code], 
+              ISNULL(SUBSTRING([BAD].[Bulk Code], 1, 4),SPACE(4)) AS [Bulk mail code], 
               REPLICATE('?', 5) AS [Notice Type], 
               REPLICATE('?', 2) AS [Routing Type], 
               REPLICATE('?', 8) AS [Form Identification], 
@@ -18,7 +18,10 @@ SELECT TOP 20 'BCA00020' AS [Record ID],
               SUBSTRING([BSD].[Jurisdiction Desc], 1, (CHARINDEX('(', [BSD].[Jurisdiction Desc])-1)) AS [Jurisdiction Description], 
               CONCAT(SUBSTRING([BAD].[PIN Number], 1, 4), '-', SUBSTRING([BAD].[PIN Number], 5, 10)) AS [PIN], 
               SUBSTRING([AG].[Neighbourhood Code], 4, 3) AS [Office Use/Neighbourhood Code], 
-              CONCAT('Bulk Mail: ', COALESCE(SUBSTRING([BAD].[Bulk Code], 1, 4), '')) AS [Bulk mail], 
+              IIF(ISNULL(SUBSTRING([BAD].[Bulk Code], 1, 4),'')='',
+			  SPACE(14),
+			  CONCAT('Bulk Mail: ', COALESCE(SUBSTRING([BAD].[Bulk Code], 1, 4), ''))
+			  ) AS [Bulk mail], 
               REPLICATE('?', 7) AS [TYPE_SEQNUM], 
               '' AS [Property Info], 
               [PD].[Legal Description List] AS [Legal Description], 
@@ -65,12 +68,24 @@ SELECT TOP 20 'BCA00020' AS [Record ID],
               CONCAT([AG].[Area Desc], SPACE(30-LEN([AG].[Area Desc]))) AS [AREA_NAME], 
               CONCAT([BSD].[School District Desc], SPACE(30-LEN([BSD].[School District Desc]))) AS [SD_NAME], 
               CONCAT([AG].[Neighbourhood Desc], SPACE(50-LEN([AG].[Neighbourhood Desc]))) AS [NEIGH_NAME], 
-              '?' AS [INSERT_1_YN], 
-              '?' AS [INSERT_2_YN], 
-              '?' AS [INSERT_3_YN], 
-              '?' AS [INSERT_4_YN], 
-              REPLICATE('?', 132) AS [PDF_File_Name], 
-              '??' AS [AVERAGE PERCENT]
+              'N' AS [INSERT_1_YN], 
+              'N' AS [INSERT_2_YN], 
+              'N' AS [INSERT_3_YN], 
+              'N' AS [INSERT_4_YN], 
+              CONCAT([PR].[Area Code],'_',[PR].[Jurisdiction Code],'_',[PR].[Roll Number],'_',ISNULL([Owner 1 Name], 'NO OWNER1'),ISNULL('_'+[Owner 2 Name], ''),'.pdf') AS [PDF_File_Name], 
+              IIF(CHARINDEX([PD].[Property Class Code List],',')>0,'',
+			  CONCAT(SPACE(10-LEN(REPLACE(FORMAT(((ISNULL(([Previous Year1 Total Assessed Value] - [Previous Year2 Total Assessed Value])/[Previous Year2 Total Assessed Value],0) +
+			  ISNULL(([Previous Year2 Total Assessed Value] - [Previous Year3 Total Assessed Value])/[Previous Year3 Total Assessed Value],0) + 
+			  ISNULL(([Previous Year3 Total Assessed Value] - [Previous Year4 Total Assessed Value])/[Previous Year4 Total Assessed Value],0) + 
+			  ISNULL(([Previous Year4 Total Assessed Value] - [Previous Year5 Total Assessed Value])/[Previous Year5 Total Assessed Value],0)) / 4),'P0'),' %', '%')))
+			  ,
+			  REPLACE(FORMAT(((ISNULL(([Previous Year1 Total Assessed Value] - [Previous Year2 Total Assessed Value])/[Previous Year2 Total Assessed Value],0) +
+			  ISNULL(([Previous Year2 Total Assessed Value] - [Previous Year3 Total Assessed Value])/[Previous Year3 Total Assessed Value],0) + 
+			  ISNULL(([Previous Year3 Total Assessed Value] - [Previous Year4 Total Assessed Value])/[Previous Year4 Total Assessed Value],0) + 
+			  ISNULL(([Previous Year4 Total Assessed Value] - [Previous Year5 Total Assessed Value])/[Previous Year5 Total Assessed Value],0)) / 4),'P0'),' %', '%')    
+			  )
+			  )
+			  AS [AVERAGE PERCENT]
 FROM [edw].[FactRollSummary] AS [FACT]
      INNER JOIN [edw].[dimAssessmentGeography] AS [AG]
      ON [FACT].[dimAssessmentGeography_SK] = [AG].[dimAssessmentGeography_SK]
