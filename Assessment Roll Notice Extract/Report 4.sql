@@ -1,13 +1,13 @@
 DECLARE @UniqueID VARCHAR(32)= REPLACE(NEWID(), '-', '');
 DECLARE @RollYear [INT]= 2018;
 
-SELECT TOP 20 'BCA00020' AS [Record ID], 
+SELECT 'BCA00020' AS [Record ID],   -- [PR].[Folio Number], [PR].[Folio Number Display], 
               CONCAT([PR].[Area Code], [PR].[Jurisdiction Code], [PR].[Roll Number]) AS [Area Jurisdiction Roll], 
-              ISNULL([PR].[SITUS Postal Code],SPACE(7)) AS [postal Code], 
+              ISNULL([PR].[Postal Code],SPACE(7)) AS [postal Code], 
               ISNULL(SUBSTRING([BAD].[Bulk Code], 1, 4),SPACE(4)) AS [Bulk mail code], 
-              'MEDB ' AS [Notice Type], 
+              'STAND' AS [Notice Type], 
               '01' AS [Routing Type], 
-              'AAN18   ' AS [Form Identification], 
+              'AAN19   ' AS [Form Identification], 
               REPLICATE(' ', 8) AS [AFP Resource], 
               ' ' AS [Copy Requirement], 
               SPACE(5) AS [filler], 
@@ -15,7 +15,8 @@ SELECT TOP 20 'BCA00020' AS [Record ID],
               [BSD].[School District Code] AS [Sch Dist], 
               [PR].[Jurisdiction Code] AS [Jurisdiction Code], 
               CONCAT(SUBSTRING([PR].[Roll Number], 1, 3), '-', SUBSTRING([PR].[Roll Number], 4, 4), '-', CONCAT(REPLICATE('0', 3-LEN(SUBSTRING([PR].[Roll Number], 7, 3))), SUBSTRING([PR].[Roll Number], 7, 3)), SPACE(18-LEN([PR].[Roll Number]))) AS [Roll Number], 
-              SUBSTRING([BSD].[Jurisdiction Desc], 1, (CHARINDEX('(', [BSD].[Jurisdiction Desc])-1)) AS [Jurisdiction Description], 
+              CONCAT('City of ',SUBSTRING([BSD].[Jurisdiction Desc], 1, (CHARINDEX('(', [BSD].[Jurisdiction Desc])-1)),SPACE(22-LEN(SUBSTRING([BSD].[Jurisdiction Desc], 1, (CHARINDEX('(', [BSD].[Jurisdiction Desc])-1))))) AS [Jurisdiction Description], 
+
               CONCAT(SUBSTRING([BAD].[PIN Number], 1, 4), '-', SUBSTRING([BAD].[PIN Number], 5, 10)) AS [PIN], 
               SUBSTRING([AG].[Neighbourhood Code], 4, 3) AS [Office Use/Neighbourhood Code], 
               IIF(ISNULL(SUBSTRING([BAD].[Bulk Code], 1, 4),'') = '',
@@ -178,8 +179,18 @@ FROM [edw].[FactRollSummary] AS [FACT]
         AND [POA].[dimRollYear_SK] = @RollYear
 	INNER JOIN [edw].[dimAssessmentOfficeAddressLines] [AOL] ON [AOL].[dimArea_SK] = [AG].[dimArea_SK] AND [AOL].[Roll Year] = @RollYear
 
-WHERE [FACT].[Roll Year] = @RollYear
+WHERE 
+--002-349-311
 
+[FACT].[Roll Year] = @RollYear 
+--[PR].[Roll Number] IN ('03503030') 
+AND [PR].[Area Code] = '01'
+AND [PR].[Jurisdiction Code] = '213'
+AND [PR].[Roll Number] = '03523000'
+--AND [PR].[Postal Code] = 
+--[PR].[Roll Number] IN ('03503030','03503040','03504005','03505000','03508090', '03510010', '03510050') 
+--AND [PR].[Jurisdiction Code] = '213'
+--AND [PR].[SITUS Postal Code] IN ('V9B 6C8','V8W 3G3','N2E 3J2','V8W 3G3','V8W 2N8','V9K 1E1','V9B 5Z3', 'V9C 4A1')
 
       --AND [BAD].[Bulk Code] IS NOT NULL
       --AND [BAD].[PIN Number] IS NOT NULL;
