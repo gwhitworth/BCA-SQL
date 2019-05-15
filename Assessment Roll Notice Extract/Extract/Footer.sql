@@ -1,0 +1,5 @@
+DECLARE @Identifier VARCHAR = 'BCA00900';
+DECLARE @FooterVar VARCHAR(MAX)='';
+SET @FooterVar = CONCAT(@Identifier,'000000020','000000022')
+
+SELECT @FooterVar AS [FOOTER]
