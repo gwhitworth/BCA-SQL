@@ -187,7 +187,18 @@ FROM
            'N' AS [INSERT_4_YN], 
            SPACE(50) AS [PDF_File_Name], 
            IIF(CHARINDEX([PD].[Property Class Code List], ',') > 0, ''
-		   , CONCAT(SPACE(10-LEN(REPLACE(FORMAT(((ISNULL(([Previous Year1 Total Assessed Value] - [Previous Year2 Total Assessed Value]) / [Previous Year2 Total Assessed Value], 0) + ISNULL(([Previous Year2 Total Assessed Value] - [Previous Year3 Total Assessed Value]) / [Previous Year3 Total Assessed Value], 0) + ISNULL(([Previous Year3 Total Assessed Value] - [Previous Year4 Total Assessed Value]) / [Previous Year4 Total Assessed Value], 0) + ISNULL(([Previous Year4 Total Assessed Value] - [Previous Year5 Total Assessed Value]) / [Previous Year5 Total Assessed Value], 0)) / 4), 'P0'), ' %', '%'))), REPLACE(FORMAT(((ISNULL(([Previous Year1 Total Assessed Value] - [Previous Year2 Total Assessed Value]) / [Previous Year2 Total Assessed Value], 0) + ISNULL(([Previous Year2 Total Assessed Value] - [Previous Year3 Total Assessed Value]) / [Previous Year3 Total Assessed Value], 0) + ISNULL(([Previous Year3 Total Assessed Value] - [Previous Year4 Total Assessed Value]) / [Previous Year4 Total Assessed Value], 0) + ISNULL(([Previous Year4 Total Assessed Value] - [Previous Year5 Total Assessed Value]) / [Previous Year5 Total Assessed Value], 0)) / 4), 'P0'), ' %', '%'))) AS [AVERAGE PERCENT]
+		   , CONCAT(SPACE(10-LEN(REPLACE(FORMAT(((
+		   ISNULL(([FACT].[Total Assessed Value] - [Previous Year1 Total Assessed Value]) / [Previous Year1 Total Assessed Value], 0) + 
+		   ISNULL(([Previous Year1 Total Assessed Value] - [Previous Year2 Total Assessed Value]) / [Previous Year2 Total Assessed Value], 0) + 
+		   ISNULL(([Previous Year2 Total Assessed Value] - [Previous Year3 Total Assessed Value]) / [Previous Year3 Total Assessed Value], 0) + 
+		   ISNULL(([Previous Year3 Total Assessed Value] - [Previous Year4 Total Assessed Value]) / [Previous Year4 Total Assessed Value], 0)) / 4), 'P0'), ' %', '%'))),
+		   --ISNULL(([Previous Year4 Total Assessed Value] - [Previous Year5 Total Assessed Value]) / [Previous Year5 Total Assessed Value], 0)) / 4), 'P0'), ' %', '%'))), 
+		   REPLACE(FORMAT(((
+		   ISNULL(([FACT].[Total Assessed Value] - [Previous Year1 Total Assessed Value]) / [Previous Year1 Total Assessed Value], 0) + 
+		   ISNULL(([Previous Year1 Total Assessed Value] - [Previous Year2 Total Assessed Value]) / [Previous Year2 Total Assessed Value], 0) + 
+		   ISNULL(([Previous Year2 Total Assessed Value] - [Previous Year3 Total Assessed Value]) / [Previous Year3 Total Assessed Value], 0) + 
+		   ISNULL(([Previous Year3 Total Assessed Value] - [Previous Year4 Total Assessed Value]) / [Previous Year4 Total Assessed Value], 0)) / 4), 'P0'), ' %', '%'))) AS [AVERAGE PERCENT]
+		   --ISNULL(([Previous Year4 Total Assessed Value] - [Previous Year5 Total Assessed Value]) / [Previous Year5 Total Assessed Value], 0)) / 4), 'P0'), ' %', '%'))) AS [AVERAGE PERCENT]
     FROM [edw].[FactRollSummary] AS [FACT]
          INNER JOIN [edw].[FactAssessedValue] AS [FACT2] ON [FACT].[dimFolio_SK] = [FACT2].[dimFolio_SK]
          LEFT JOIN [edw].[dimManualClass] AS [MC] ON [FACT].[dimManualClass_SK] = [MC].[dimManualClass_SK]
