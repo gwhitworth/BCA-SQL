@@ -1,5 +1,5 @@
 DECLARE @RollYear [INT]= 2018;
-DECLARE @RptId CHAR(8)= 'BCA00020';
+DECLARE @RptId CHAR(8)= 'BCA00010';
 DECLARE @RunName VARCHAR(30)= 'Standard Notice';
 DECLARE @RunId VARCHAR(30)= CONCAT(@RollYear + 1, ' Completed');
 DECLARE @HeaderVar VARCHAR(MAX)= @RptId;
